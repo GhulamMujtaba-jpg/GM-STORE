@@ -30,6 +30,7 @@
         .cover-img { width: 100%; height: 220px; object-fit: cover; border-radius: 32px; margin: 20px 0; }
         .hero { background: var(--gradient); border-radius: 32px; padding: 40px 30px; margin-bottom: 30px; color: white; text-align: center; }
         .hero h1 { font-size: 36px; margin-bottom: 10px; }
+        .price-note { background: rgba(255,255,255,0.2); display: inline-block; padding: 5px 15px; border-radius: 30px; margin-top: 10px; }
         .cat-scroll { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; }
         .cat-item { background: white; padding: 10px 22px; border-radius: 60px; display: flex; align-items: center; gap: 8px; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .product-section { margin-bottom: 40px; background: rgba(255,255,255,0.5); border-radius: 28px; padding: 20px; }
@@ -98,7 +99,11 @@
 
 <div class="container">
     <img id="coverImage" class="cover-img" src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200" alt="Cover">
-    <div class="hero"><h1>Welcome to GM Store 🇵🇰</h1><p>Pakistan's Most Trusted Marketplace</p><div class="price-note" style="background:rgba(255,255,255,0.2); display:inline-block; padding:5px 15px; border-radius:30px; margin-top:10px;"><i class="fas fa-rupee-sign"></i> All Prices in Pakistani Rupees | 1 USD = 280 PKR</div></div>
+    <div class="hero">
+        <h1>Welcome to GM Store 🇵🇰</h1>
+        <p>Pakistan's Most Trusted Marketplace</p>
+        <div class="price-note"><i class="fas fa-rupee-sign"></i> All Prices in Pakistani Rupees (PKR)</div>
+    </div>
     
     <div id="homePage" class="page active-page">
         <div class="cat-scroll" id="categoriesList"></div>
@@ -120,14 +125,13 @@
     <div class="sidebar-tabs"><div class="sidebar-tab active" onclick="switchSidebarTab('chat')">💬 Chat with Admin</div><div class="sidebar-tab" onclick="switchSidebarTab('request')">📦 Sell Product</div></div>
     <div class="sidebar-content">
         <div id="chatPanel"><div class="chat-messages" id="sidebarChatMessages"></div><div class="chat-input-area"><input type="text" id="chatInput" placeholder="Type message..."><button class="menu-btn" onclick="sendMessage()" style="padding:8px 16px">Send</button></div></div>
-        <div id="requestPanel" style="display:none"><h4>Request to Add Product</h4><div class="request-form"><input type="text" id="reqName" placeholder="Product Name *"><select id="reqCategory"></select><input type="number" id="reqPrice" placeholder="Price USD *"><input type="number" id="reqStock" placeholder="Stock *"><input type="text" id="reqWhatsapp" placeholder="Your WhatsApp *"><input type="text" id="reqSellerName" placeholder="Your Name *"><textarea id="reqDesc" rows="2" placeholder="Description *"></textarea><input type="file" id="reqImages" multiple accept="image/*"><div id="reqImgPreview" class="img-preview" style="display:flex; gap:8px; flex-wrap:wrap; margin:8px 0;"></div><button class="menu-btn" onclick="submitProductRequest()" style="width:100%; margin-top:10px">Send Request</button></div></div>
+        <div id="requestPanel" style="display:none"><h4>Request to Add Product (Price in PKR)</h4><div class="request-form"><input type="text" id="reqName" placeholder="Product Name *"><select id="reqCategory"></select><input type="number" id="reqPrice" placeholder="Price (PKR) *"><input type="number" id="reqStock" placeholder="Stock *"><input type="text" id="reqWhatsapp" placeholder="Your WhatsApp *"><input type="text" id="reqSellerName" placeholder="Your Name *"><textarea id="reqDesc" rows="2" placeholder="Description *"></textarea><input type="file" id="reqImages" multiple accept="image/*"><div id="reqImgPreview" style="display:flex; gap:8px; flex-wrap:wrap; margin:8px 0;"></div><button class="menu-btn" onclick="submitProductRequest()" style="width:100%; margin-top:10px">Send Request</button></div></div>
     </div>
 </div>
 
-<div id="productModal" class="modal"><div class="modal-content"><i class="fas fa-times" onclick="closeProductModal()" style="float:right; font-size:22px; cursor:pointer"></i><h2 id="modalTitle"></h2><div id="modalGallery" class="modal-gallery"></div><p><strong>Price:</strong> Rs. <span id="modalPrice"></span></p><p><strong>Seller:</strong> <span id="modalSeller"></span></p><p><strong>WhatsApp:</strong> <span id="modalWhatsapp"></span></p><button onclick="orderFromModal()" class="btn-buy" style="margin-top:15px"><i class="fab fa-whatsapp"></i> Order on WhatsApp</button></div></div>
+<div id="productModal" class="modal"><div class="modal-content"><i class="fas fa-times" onclick="closeProductModal()" style="float:right; font-size:22px; cursor:pointer"></i><h2 id="modalTitle"></h2><div id="modalGallery" class="modal-gallery"></div><p><strong>Price:</strong> Rs. <span id="modalPrice"></span></p><p><strong>Discount:</strong> <span id="modalDiscount"></span>%</p><p><strong>Final Price:</strong> Rs. <span id="modalFinalPrice"></span></p><p><strong>Seller:</strong> <span id="modalSeller"></span></p><button id="modalOrderBtn" class="btn-order" style="margin-top:15px; width:100%">Place Order</button><button onclick="downloadProductImages()" style="background:var(--gradient); border:none; padding:10px 20px; border-radius:40px; color:white; margin-top:10px; width:100%; cursor:pointer"><i class="fas fa-download"></i> Download All Images</button></div></div>
 
 <script>
-    const USD_TO_PKR = 280;
     let adminProducts = JSON.parse(localStorage.getItem('gm_admin_products')) || [];
     let categories = JSON.parse(localStorage.getItem('gm_categories')) || {};
     let clientRequests = JSON.parse(localStorage.getItem('gm_client_requests')) || [];
@@ -135,11 +139,11 @@
     let favorites = JSON.parse(localStorage.getItem('gm_favorites')) || [];
     let orders = JSON.parse(localStorage.getItem('gm_orders')) || [];
     let currentViewProduct = null;
+    let currentViewProductType = null;
 
     if (Object.keys(categories).length === 0) categories = { "Electronics": "https://cdn-icons-png.flaticon.com/512/3659/3659898.png", "Fashion": "https://cdn-icons-png.flaticon.com/512/6174/6174039.png", "Home Decor": "https://cdn-icons-png.flaticon.com/512/2543/2543366.png" };
 
     function getApprovedCommunityProducts() { return clientRequests.filter(r => r.status === 'approved').map(r => ({ id: r.id, name: r.product.name, price: r.product.price, discount: 0, stock: r.product.stock, whatsapp: r.seller.whatsapp, category: r.product.category, images: r.product.images, description: r.product.description, addedBy: "client", sellerName: r.seller.name })); }
-    function toPKR(usd) { return Math.round(usd * USD_TO_PKR); }
     function saveAll() { localStorage.setItem('gm_client_requests', JSON.stringify(clientRequests)); localStorage.setItem('gm_client_chats', JSON.stringify(clientChats)); localStorage.setItem('gm_favorites', JSON.stringify(favorites)); localStorage.setItem('gm_orders', JSON.stringify(orders)); }
 
     function setTheme(theme) { document.body.className = theme === 'default' ? '' : 'theme-' + theme; localStorage.setItem('gm_client_theme', theme); }
@@ -163,26 +167,63 @@
     }
 
     function productCard(p, type) {
-        let pkrPrice = toPKR(p.price);
-        let pkrFinal = toPKR(p.price - (p.price * (p.discount||0)/100));
-        return `<div class="product-card" onclick='viewProduct(${JSON.stringify(p).replace(/'/g, "&#39;")}, "${type}")'><img src="${p.images[0]}" class="product-img"><div class="product-body"><div class="product-price-pkr"><i class="fas fa-rupee-sign"></i> ${pkrFinal.toLocaleString()} ${p.discount ? `<span class="old-price"><i class="fas fa-rupee-sign"></i> ${pkrPrice.toLocaleString()}</span> <span style="font-size:12px;">${p.discount}% OFF</span>` : ''}</div><button class="btn-buy" onclick="event.stopPropagation(); buyWhatsApp('${escapeHtml(p.name)}', ${pkrFinal}, '${p.whatsapp}')"><i class="fab fa-whatsapp"></i> WhatsApp Order</button><button class="btn-order" onclick="event.stopPropagation(); openOrderForm('${escapeHtml(p.name)}', ${pkrFinal})"><i class="fas fa-truck"></i> Place Order</button></div></div>`;
+        let finalPrice = p.price - (p.price * (p.discount||0)/100);
+        // Admin products: WhatsApp Order button | Community products: Place Order button
+        let orderButton = type === 'admin' 
+            ? `<button class="btn-buy" onclick="event.stopPropagation(); buyWhatsApp('${escapeHtml(p.name)}', ${finalPrice}, '${p.whatsapp}')"><i class="fab fa-whatsapp"></i> WhatsApp Order</button>`
+            : `<button class="btn-order" onclick="event.stopPropagation(); openOrderForm('${escapeHtml(p.name)}', ${finalPrice})"><i class="fas fa-truck"></i> Place Order</button>`;
+        
+        return `<div class="product-card" onclick='viewProduct(${JSON.stringify(p).replace(/'/g, "&#39;")}, "${type}")'><img src="${p.images[0]}" class="product-img"><div class="product-body"><div class="product-price-pkr"><i class="fas fa-rupee-sign"></i> ${finalPrice.toLocaleString()} ${p.discount ? `<span class="old-price"><i class="fas fa-rupee-sign"></i> ${p.price.toLocaleString()}</span> <span style="font-size:12px;">${p.discount}% OFF</span>` : ''}</div>${orderButton}</div></div>`;
     }
 
     function viewProduct(p, type) {
         currentViewProduct = p;
-        let pkrFinal = toPKR(p.price - (p.price * (p.discount||0)/100));
+        currentViewProductType = type;
+        let finalPrice = p.price - (p.price * (p.discount||0)/100);
         document.getElementById('modalTitle').innerText = p.name;
         document.getElementById('modalGallery').innerHTML = p.images.map(img => `<img src="${img}" class="gallery-img" onclick="event.stopPropagation(); window.open(this.src)">`).join('');
-        document.getElementById('modalPrice').innerText = pkrFinal.toLocaleString();
+        document.getElementById('modalPrice').innerText = p.price.toLocaleString();
+        document.getElementById('modalDiscount').innerText = p.discount || 0;
+        document.getElementById('modalFinalPrice').innerText = finalPrice.toLocaleString();
         document.getElementById('modalSeller').innerText = type === 'admin' ? 'GM Official Store' : p.sellerName;
-        document.getElementById('modalWhatsapp').innerText = p.whatsapp;
+        
+        let orderBtn = document.getElementById('modalOrderBtn');
+        if(type === 'admin') {
+            orderBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Order on WhatsApp';
+            orderBtn.onclick = () => buyWhatsApp(p.name, finalPrice, p.whatsapp);
+        } else {
+            orderBtn.innerHTML = '<i class="fas fa-truck"></i> Place Order';
+            orderBtn.onclick = () => openOrderForm(p.name, finalPrice);
+        }
         document.getElementById('productModal').style.display = 'flex';
     }
+    
     function closeProductModal() { document.getElementById('productModal').style.display = 'none'; }
-    function orderFromModal() { if(currentViewProduct) { let price = toPKR(currentViewProduct.price - (currentViewProduct.price * (currentViewProduct.discount||0)/100)); buyWhatsApp(currentViewProduct.name, price, currentViewProduct.whatsapp); } }
+    function downloadProductImages() { if(currentViewProduct) { currentViewProduct.images.forEach((img, i) => { let a = document.createElement('a'); a.href = img; a.download = `product_${currentViewProduct.id}_${i+1}.jpg`; a.click(); }); Swal.fire('Download started', 'Images are being downloaded', 'success'); } }
 
     function buyWhatsApp(name, price, whatsapp) { let cleanNumber = whatsapp.toString().replace(/[^0-9]/g, ''); if(cleanNumber.startsWith('0')) cleanNumber = '92' + cleanNumber.substring(1); if(!cleanNumber.startsWith('92')) cleanNumber = '92' + cleanNumber; window.open(`https://wa.me/${cleanNumber}?text=Hi%2C%20I%20want%20to%20buy%20${encodeURIComponent(name)}%20for%20Rs.${price}`, '_blank'); }
-    function openOrderForm(name, price) { Swal.fire({ title: `Order ${name}`, html: `<input id="orderName" class="swal2-input" placeholder="Full Name" required><input id="orderCity" placeholder="City" required><input id="orderAddress" placeholder="Full Address" required><select id="orderProvince" class="swal2-select"><option>Punjab</option><option>Sindh</option><option>KPK</option><option>Balochistan</option><option>Gilgit Baltistan</option><option>Azad Kashmir</option></select><input id="orderMobile" placeholder="Mobile Number" required>`, preConfirm: () => { return { name: document.getElementById('orderName').value, city: document.getElementById('orderCity').value, address: document.getElementById('orderAddress').value, province: document.getElementById('orderProvince').value, mobile: document.getElementById('orderMobile').value }; } }).then(res => { if(res.value) { fetch('https://formspree.io/f/xkoqnkze', { method: 'POST', body: new URLSearchParams(res.value), headers: { 'Accept': 'application/json' } }); Swal.fire('Order Submitted!', 'Admin will contact you', 'success'); let order = { id: Date.now(), productName: name, price: price, status: 'Pending', date: new Date().toLocaleString() }; orders.unshift(order); saveAll(); renderOrders(); } }); }
+    
+    function openOrderForm(name, price) { 
+        Swal.fire({ 
+            title: `Order ${name}`, 
+            html: `<input id="orderName" class="swal2-input" placeholder="Full Name" required>
+                   <input id="orderCity" placeholder="City" required class="swal2-input">
+                   <input id="orderAddress" placeholder="Full Address" required class="swal2-input">
+                   <select id="orderProvince" class="swal2-select">
+                       <option>Punjab</option><option>Sindh</option><option>KPK</option>
+                       <option>Balochistan</option><option>Gilgit Baltistan</option><option>Azad Kashmir</option>
+                   </select>
+                   <input id="orderMobile" placeholder="Mobile Number" required class="swal2-input">`,
+            preConfirm: () => { return { name: document.getElementById('orderName').value, city: document.getElementById('orderCity').value, address: document.getElementById('orderAddress').value, province: document.getElementById('orderProvince').value, mobile: document.getElementById('orderMobile').value }; }
+        }).then(res => { 
+            if(res.value) { 
+                fetch('https://formspree.io/f/xkoqnkze', { method: 'POST', body: new URLSearchParams({...res.value, product: name, price: price}), headers: { 'Accept': 'application/json' } }); 
+                Swal.fire('Order Submitted!', 'Admin will contact you', 'success'); 
+                let order = { id: Date.now(), productName: name, price: price, status: 'Pending', date: new Date().toLocaleString() }; 
+                orders.unshift(order); saveAll(); renderOrders(); 
+            } 
+        }); 
+    }
 
     let clientName = localStorage.getItem('gm_client_name');
     if(!clientName) { clientName = prompt("Enter your name for chat:", "Customer") || "Customer"; localStorage.setItem('gm_client_name', clientName); }
@@ -231,7 +272,7 @@
         closeSidebar();
     }
 
-    function renderFav() { let container = document.getElementById('favoritesList'); if(favorites.length===0) container.innerHTML='<p style="padding:40px;text-align:center">No favorites yet</p>'; else container.innerHTML = favorites.map(p => `<div style="background:white; border-radius:20px; padding:15px; margin-bottom:10px"><h4>${p.name}</h4><p>Rs. ${toPKR(p.price).toLocaleString()}</p></div>`).join(''); }
+    function renderFav() { let container = document.getElementById('favoritesList'); if(favorites.length===0) container.innerHTML='<p style="padding:40px;text-align:center">No favorites yet</p>'; else container.innerHTML = favorites.map(p => `<div style="background:white; border-radius:20px; padding:15px; margin-bottom:10px"><h4>${p.name}</h4><p>Rs. ${(p.price - (p.price*(p.discount||0)/100)).toLocaleString()}</p></div>`).join(''); }
     function renderOrders() { let container = document.getElementById('ordersList'); if(orders.length===0) container.innerHTML='<p style="padding:40px;text-align:center">No orders yet</p>'; else container.innerHTML = orders.map(o => `<div style="background:white; border-radius:20px; padding:15px; margin-bottom:10px"><h4>${o.productName}</h4><p>Rs. ${o.price.toLocaleString()}</p><span style="background:#e0e0e0; padding:2px 12px; border-radius:20px">${o.status}</span></div>`).join(''); }
 
     function switchPage(page) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page')); document.getElementById(page + 'Page').classList.add('active-page'); document.querySelectorAll('.tab-icon').forEach((t,i) => { t.classList.toggle('active', (page==='home' && i===0) || (page==='favorites' && i===1) || (page==='orders' && i===2)); }); if(page === 'favorites') renderFav(); if(page === 'orders') renderOrders(); if(page === 'home') renderStore(); }
