@@ -129,14 +129,14 @@
     </div>
 
     <div id="productsPanel" class="panel active-panel">
-        <div class="panel-title"><i class="fas fa-plus-circle" style="color:#4caf50"></i> Add / Edit Product</div>
+        <div class="panel-title"><i class="fas fa-plus-circle" style="color:#4caf50"></i> Add / Edit Product (Price in PKR)</div>
         <div class="form-grid">
             <input type="text" id="productName" class="form-input" placeholder="Product Name *">
             <select id="productCategory" class="form-input"></select>
-            <input type="number" id="productPrice" class="form-input" placeholder="Price USD *">
+            <input type="number" id="productPrice" class="form-input" placeholder="Price (PKR) *">
             <input type="number" id="productDiscount" class="form-input" placeholder="Discount %" value="0">
             <input type="number" id="productStock" class="form-input" placeholder="Stock *">
-            <input type="text" id="productWhatsapp" class="form-input" placeholder="Admin WhatsApp Number *">
+            <input type="text" id="productWhatsapp" class="form-input" placeholder="WhatsApp Number (for orders) *">
         </div>
         <textarea id="productDesc" rows="3" class="form-input" placeholder="Product Description *"></textarea>
         <div class="upload-area" onclick="document.getElementById('productImages').click()">
@@ -165,7 +165,7 @@
     </div>
 
     <div id="requestsPanel" class="panel">
-        <div class="panel-title"><i class="fas fa-clock" style="color:#f59e0b"></i> Client Product Requests</div>
+        <div class="panel-title"><i class="fas fa-clock" style="color:#f59e0b"></i> Client Product Requests (Price in PKR)</div>
         <div id="pendingRequestsList"></div>
     </div>
 
@@ -195,9 +195,9 @@
         <i class="fas fa-times" onclick="closeProductModal()" style="float:right; font-size:24px; cursor:pointer"></i>
         <h2 id="modalTitle"></h2>
         <div id="modalGallery" class="modal-gallery"></div>
-        <p><strong>Price:</strong> $<span id="modalPrice"></span></p>
+        <p><strong>Price:</strong> Rs. <span id="modalPrice"></span></p>
         <p><strong>Discount:</strong> <span id="modalDiscount"></span>%</p>
-        <p><strong>Final Price:</strong> $<span id="modalFinalPrice"></span></p>
+        <p><strong>Final Price:</strong> Rs. <span id="modalFinalPrice"></span></p>
         <p><strong>Stock:</strong> <span id="modalStock"></span></p>
         <p><strong>Category:</strong> <span id="modalCategory"></span></p>
         <p><strong>WhatsApp:</strong> <span id="modalWhatsapp"></span></p>
@@ -358,9 +358,9 @@
         currentViewProduct = product;
         document.getElementById('modalTitle').innerText = product.name;
         document.getElementById('modalGallery').innerHTML = product.images.map(img => `<img src="${img}" class="gallery-img" onclick="window.open(this.src)">`).join('');
-        document.getElementById('modalPrice').innerText = product.price;
+        document.getElementById('modalPrice').innerText = product.price.toLocaleString();
         document.getElementById('modalDiscount').innerText = product.discount;
-        document.getElementById('modalFinalPrice').innerText = product.finalPrice.toFixed(2);
+        document.getElementById('modalFinalPrice').innerText = product.finalPrice.toLocaleString();
         document.getElementById('modalStock').innerText = product.stock;
         document.getElementById('modalCategory').innerText = product.category;
         document.getElementById('modalWhatsapp').innerText = product.whatsapp;
@@ -381,7 +381,7 @@
     function renderAllProducts() {
         let container = document.getElementById('allProductsGrid');
         if(adminProducts.length === 0) { container.innerHTML = '<div style="padding:50px;text-align:center">No products</div>'; return; }
-        container.innerHTML = adminProducts.map(p => `<div class="product-card"><img src="${p.images[0]}" class="product-img" onclick='viewProductDetails(${JSON.stringify(p).replace(/'/g, "&#39;")})'><div class="product-body"><h4>${escapeHtml(p.name)}</h4><div style="font-size:22px;font-weight:800;color:var(--primary)">$${p.finalPrice.toFixed(2)} ${p.discount ? `<span style="font-size:14px;text-decoration:line-through">$${p.price}</span>` : ''}</div><div class="product-actions"><button class="edit-btn" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i> Edit</button><button class="view-btn" onclick='viewProductDetails(${JSON.stringify(p).replace(/'/g, "&#39;")})'><i class="fas fa-eye"></i> View</button><button class="delete-btn" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i> Delete</button></div></div></div>`).join('');
+        container.innerHTML = adminProducts.map(p => `<div class="product-card"><img src="${p.images[0]}" class="product-img" onclick='viewProductDetails(${JSON.stringify(p).replace(/'/g, "&#39;")})'><div class="product-body"><h4>${escapeHtml(p.name)}</h4><div style="font-size:22px;font-weight:800;color:var(--primary)">Rs. ${p.finalPrice.toLocaleString()} ${p.discount ? `<span style="font-size:14px;text-decoration:line-through">Rs. ${p.price.toLocaleString()}</span>` : ''}</div><div class="product-actions"><button class="edit-btn" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i> Edit</button><button class="view-btn" onclick='viewProductDetails(${JSON.stringify(p).replace(/'/g, "&#39;")})'><i class="fas fa-eye"></i> View</button><button class="delete-btn" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i> Delete</button></div></div></div>`).join('');
         document.getElementById('totalProducts').innerText = adminProducts.length;
     }
 
@@ -389,7 +389,7 @@
         let container = document.getElementById('pendingRequestsList');
         let pending = clientRequests.filter(r => r.status === 'pending');
         if(pending.length === 0) { container.innerHTML = '<div style="padding:50px;text-align:center">No pending requests</div>'; return; }
-        container.innerHTML = pending.map(req => `<div style="background:white; border-radius:28px; padding:22px; margin-bottom:20px;"><div style="display:flex; justify-content:space-between;"><strong>${escapeHtml(req.product.name)}</strong><span style="background:#fff3e0;padding:5px 16px;border-radius:30px;">Pending</span></div><div style="display:flex; gap:18px; margin:15px 0;"><img src="${req.product.images[0]}" width="70" height="70" style="border-radius:18px"><div><strong>Seller:</strong> ${escapeHtml(req.seller.name)}<br><strong>WhatsApp:</strong> ${req.seller.whatsapp}<br><strong>Price:</strong> $${req.product.price}</div></div><div style="display:flex; gap:14px;"><button onclick="handleRequest(${req.id}, 'accept')" style="background:#4caf50; color:white; padding:10px 24px; border-radius:50px; border:none">Accept</button><button onclick="handleRequest(${req.id}, 'reject')" style="background:#f44336; color:white; padding:10px 24px; border-radius:50px; border:none">Reject</button></div></div>`).join('');
+        container.innerHTML = pending.map(req => `<div style="background:white; border-radius:28px; padding:22px; margin-bottom:20px;"><div style="display:flex; justify-content:space-between;"><strong>${escapeHtml(req.product.name)}</strong><span style="background:#fff3e0;padding:5px 16px;border-radius:30px;">Pending</span></div><div style="display:flex; gap:18px; margin:15px 0;"><img src="${req.product.images[0]}" width="70" height="70" style="border-radius:18px"><div><strong>Seller:</strong> ${escapeHtml(req.seller.name)}<br><strong>WhatsApp:</strong> ${req.seller.whatsapp}<br><strong>Price:</strong> Rs. ${req.product.price.toLocaleString()}</div></div><div style="display:flex; gap:14px;"><button onclick="handleRequest(${req.id}, 'accept')" style="background:#4caf50; color:white; padding:10px 24px; border-radius:50px; border:none">Accept</button><button onclick="handleRequest(${req.id}, 'reject')" style="background:#f44336; color:white; padding:10px 24px; border-radius:50px; border:none">Reject</button></div></div>`).join('');
     }
     function handleRequest(id, action) { let req = clientRequests.find(r => r.id === id); if(req) { req.status = action === 'accept' ? 'approved' : 'rejected'; saveAll(); renderPendingRequests(); Swal.fire({ icon: 'success', title: action === 'accept' ? 'Approved!' : 'Rejected', timer: 1500 }); } }
 
@@ -434,7 +434,7 @@
     function switchTab(tab) { document.querySelectorAll('.panel').forEach(p => p.classList.remove('active-panel')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); if(tab === 'products') { document.getElementById('productsPanel').classList.add('active-panel'); document.querySelectorAll('.tab-btn')[0].classList.add('active'); renderAllProducts(); } else if(tab === 'categories') { document.getElementById('categoriesPanel').classList.add('active-panel'); document.querySelectorAll('.tab-btn')[1].classList.add('active'); renderCategories(); } else if(tab === 'requests') { document.getElementById('requestsPanel').classList.add('active-panel'); document.querySelectorAll('.tab-btn')[2].classList.add('active'); renderPendingRequests(); } else if(tab === 'chats') { document.getElementById('chatsPanel').classList.add('active-panel'); document.querySelectorAll('.tab-btn')[3].classList.add('active'); renderClientsList(); } }
     function escapeHtml(str) { if(!str) return ''; let d=document.createElement('div'); d.textContent=str; return d.innerHTML; }
 
-    if(adminProducts.length === 0) { adminProducts.push({ id: 1, name: "iPhone 15 Pro Max", price: 1399, discount: 10, finalPrice: 1259.1, stock: 12, whatsapp: "923001234567", category: "Electronics", images: ["https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400"], description: "Latest A17 chip", addedBy: "admin", sellerName: "GM Official" }); saveAll(); }
+    if(adminProducts.length === 0) { adminProducts.push({ id: 1, name: "iPhone 15 Pro Max", price: 389000, discount: 10, finalPrice: 350100, stock: 12, whatsapp: "923001234567", category: "Electronics", images: ["https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400"], description: "Latest A17 chip, 256GB", addedBy: "admin", sellerName: "GM Official" }); saveAll(); }
     renderCategories(); renderAllProducts(); renderPendingRequests(); renderClientsList(); updateStats();
 </script>
 </body>
