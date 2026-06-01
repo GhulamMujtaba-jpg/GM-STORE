@@ -62,7 +62,7 @@
         .client-msg { display: flex; justify-content: flex-end; }
         .client-msg .bubble { background: var(--gradient); color: white; border-radius: 20px 20px 5px 20px; }
         .admin-msg .bubble { background: #f0f0f0; border-radius: 20px 20px 20px 5px; }
-        .bubble { padding: 10px 14px; max-width: 85%; font-size: 13px; }
+        .bubble { padding: 10px 14px; max-width: 85%; font-size: 13px; word-break: break-word; }
         .delete-msg-chat { position: absolute; bottom: -8px; right: 5px; background: rgba(0,0,0,0.5); color: white; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 9px; cursor: pointer; opacity: 0; }
         .message-bubble:hover .delete-msg-chat { opacity: 1; }
         .chat-input-area { display: flex; gap: 10px; margin-top: 10px; }
@@ -74,6 +74,9 @@
         .modal-content { background: white; border-radius: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; padding: 25px; }
         .modal-gallery { display: flex; gap: 10px; overflow-x: auto; margin: 15px 0; }
         .gallery-img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; cursor: pointer; }
+        .order-form-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1001; justify-content: center; align-items: center; }
+        .order-form-content { background: white; border-radius: 32px; max-width: 500px; width: 90%; max-height: 85vh; overflow-y: auto; padding: 25px; }
+        .order-form-content input, .order-form-content select, .order-form-content textarea { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 16px; border: 1px solid #ddd; }
         @media (max-width: 680px) { .sidebar { width: 320px; } .hero h1 { font-size: 28px; } }
     </style>
 </head>
@@ -129,7 +132,33 @@
     </div>
 </div>
 
-<div id="productModal" class="modal"><div class="modal-content"><i class="fas fa-times" onclick="closeProductModal()" style="float:right; font-size:22px; cursor:pointer"></i><h2 id="modalTitle"></h2><div id="modalGallery" class="modal-gallery"></div><p><strong>Price:</strong> Rs. <span id="modalPrice"></span></p><p><strong>Discount:</strong> <span id="modalDiscount"></span>%</p><p><strong>Final Price:</strong> Rs. <span id="modalFinalPrice"></span></p><p><strong>Seller:</strong> <span id="modalSeller"></span></p><button id="modalOrderBtn" class="btn-place-order" style="margin-top:15px; width:100%">Order Now</button><button onclick="downloadProductImages()" style="background:var(--gradient); border:none; padding:10px 20px; border-radius:40px; color:white; margin-top:10px; width:100%; cursor:pointer"><i class="fas fa-download"></i> Download All Images</button></div></div>
+<!-- Order Form Modal -->
+<div id="orderFormModal" class="order-form-modal">
+    <div class="order-form-content">
+        <i class="fas fa-times" onclick="closeOrderFormModal()" style="float:right; font-size:22px; cursor:pointer"></i>
+        <h3 style="margin-bottom:20px"><i class="fas fa-shopping-cart"></i> Complete Your Order</h3>
+        <div id="orderProductInfo" style="background:#f5f5f5; padding:12px; border-radius:16px; margin-bottom:15px;"></div>
+        <input type="text" id="orderCustomerName" placeholder="Full Name *" required>
+        <input type="text" id="orderCity" placeholder="City *" required>
+        <textarea id="orderAddress" rows="2" placeholder="Full Address *" required></textarea>
+        <input type="text" id="orderLandmark" placeholder="Famous Landmark / Area *" required>
+        <input type="tel" id="orderMobile" placeholder="Mobile Number *" required>
+        <input type="tel" id="orderAltMobile" placeholder="Alternate Number (Optional)">
+        <select id="orderProvince" required>
+            <option value="">Select Province *</option>
+            <option value="Punjab">Punjab</option>
+            <option value="Sindh">Sindh</option>
+            <option value="Khyber Pakhtunkhwa">Khyber Pakhtunkhwa (KPK)</option>
+            <option value="Balochistan">Balochistan</option>
+            <option value="Gilgit Baltistan">Gilgit Baltistan</option>
+            <option value="Azad Kashmir">Azad Kashmir</option>
+            <option value="Islamabad">Islamabad Capital Territory</option>
+        </select>
+        <button class="btn-place-order" onclick="submitOrderToFormspree()" style="width:100%; margin-top:10px"><i class="fas fa-paper-plane"></i> Submit Order</button>
+    </div>
+</div>
+
+<div id="productModal" class="modal"><div class="modal-content"><i class="fas fa-times" onclick="closeProductModal()" style="float:right; font-size:22px; cursor:pointer"></i><h2 id="modalTitle"></h2><div id="modalGallery" class="modal-gallery"></div><p><strong>Price:</strong> Rs. <span id="modalPrice"></span></p><p><strong>Discount:</strong> <span id="modalDiscount"></span>%</p><p><strong>Final Price:</strong> Rs. <span id="modalFinalPrice"></span></p><p><strong>Seller:</strong> <span id="modalSeller"></span></p><button id="modalOrderBtn" class="btn-place-order" style="margin-top:15px; width:100%">Place Order</button><button onclick="downloadProductImages()" style="background:var(--gradient); border:none; padding:10px 20px; border-radius:40px; color:white; margin-top:10px; width:100%; cursor:pointer"><i class="fas fa-download"></i> Download All Images</button></div></div>
 
 <script>
     let adminProducts = JSON.parse(localStorage.getItem('gm_admin_products')) || [];
@@ -146,9 +175,8 @@
     function getApprovedCommunityProducts() { 
         return clientRequests.filter(r => r.status === 'approved').map(r => ({ 
             id: r.id, name: r.product.name, price: r.product.price, discount: 0, stock: r.product.stock, 
-            whatsapp: r.seller.whatsapp,  // Client ka apna WhatsApp number
-            category: r.product.category, images: r.product.images, description: r.product.description, 
-            addedBy: "client", sellerName: r.seller.name 
+            whatsapp: r.seller.whatsapp, category: r.product.category, images: r.product.images, 
+            description: r.product.description, addedBy: "client", sellerName: r.seller.name 
         })); 
     }
     
@@ -181,16 +209,12 @@
 
     function productCard(p, type) {
         let finalPrice = p.price - (p.price * (p.discount||0)/100);
-        // Admin products: WhatsApp Order button (admin ka number)
-        // Community products (client ki approved products): Client ka WhatsApp number show, Place Order button nahi
         let orderButton = '';
         if(type === 'admin') {
-            orderButton = `<button class="btn-whatsapp" onclick="event.stopPropagation(); buyWhatsApp('${escapeHtml(p.name)}', ${finalPrice}, '${p.whatsapp}')"><i class="fab fa-whatsapp"></i> WhatsApp Order</button>`;
+            orderButton = `<button class="btn-whatsapp" onclick="event.stopPropagation(); openOrderFormModal('${escapeHtml(p.name)}', ${finalPrice})"><i class="fas fa-truck"></i> Place Order (Form)</button>`;
         } else {
-            // Community product - show client ka WhatsApp number (sirf display, order button nahi)
             orderButton = `<div style="margin-top:8px; padding:8px; background:#f0f0f0; border-radius:30px; text-align:center; font-size:12px;"><i class="fab fa-whatsapp"></i> Seller WhatsApp: ${p.whatsapp}</div>`;
         }
-        
         return `<div class="product-card" onclick='viewProduct(${JSON.stringify(p).replace(/'/g, "&#39;")}, "${type}")'><img src="${p.images[0]}" class="product-img"><div class="product-body"><div class="product-price-pkr"><i class="fas fa-rupee-sign"></i> ${finalPrice.toLocaleString()} ${p.discount ? `<span class="old-price"><i class="fas fa-rupee-sign"></i> ${p.price.toLocaleString()}</span> <span style="font-size:12px;">${p.discount}% OFF</span>` : ''}</div>${orderButton}</div></div>`;
     }
 
@@ -207,14 +231,11 @@
         
         let orderBtn = document.getElementById('modalOrderBtn');
         if(type === 'admin') {
-            orderBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Order on WhatsApp';
-            orderBtn.onclick = () => buyWhatsApp(p.name, finalPrice, p.whatsapp);
-            orderBtn.style.display = 'block';
+            orderBtn.innerHTML = '<i class="fas fa-truck"></i> Place Order (Form)';
+            orderBtn.onclick = () => openOrderFormModal(p.name, finalPrice);
         } else {
-            // Community product mein modal mein bhi WhatsApp number show karega, Place Order nahi
             orderBtn.innerHTML = `<i class="fab fa-whatsapp"></i> Contact Seller: ${p.whatsapp}`;
             orderBtn.onclick = () => buyWhatsApp(p.name, finalPrice, p.whatsapp);
-            orderBtn.style.display = 'block';
         }
         document.getElementById('productModal').style.display = 'flex';
     }
@@ -227,6 +248,72 @@
         if(cleanNumber.startsWith('0')) cleanNumber = '92' + cleanNumber.substring(1); 
         if(!cleanNumber.startsWith('92')) cleanNumber = '92' + cleanNumber; 
         window.open(`https://wa.me/${cleanNumber}?text=Hi%2C%20I%20want%20to%20buy%20${encodeURIComponent(name)}%20for%20Rs.${price}`, '_blank'); 
+    }
+
+    // Order Form Functions
+    let currentOrderProduct = { name: '', price: 0 };
+    
+    function openOrderFormModal(name, price) {
+        currentOrderProduct = { name, price };
+        document.getElementById('orderProductInfo').innerHTML = `<strong>${name}</strong><br>Total Amount: <strong>Rs. ${price.toLocaleString()}</strong>`;
+        document.getElementById('orderFormModal').style.display = 'flex';
+    }
+    
+    function closeOrderFormModal() {
+        document.getElementById('orderFormModal').style.display = 'none';
+        // Clear form
+        document.getElementById('orderCustomerName').value = '';
+        document.getElementById('orderCity').value = '';
+        document.getElementById('orderAddress').value = '';
+        document.getElementById('orderLandmark').value = '';
+        document.getElementById('orderMobile').value = '';
+        document.getElementById('orderAltMobile').value = '';
+        document.getElementById('orderProvince').value = '';
+    }
+    
+    function submitOrderToFormspree() {
+        let name = document.getElementById('orderCustomerName').value.trim();
+        let city = document.getElementById('orderCity').value.trim();
+        let address = document.getElementById('orderAddress').value.trim();
+        let landmark = document.getElementById('orderLandmark').value.trim();
+        let mobile = document.getElementById('orderMobile').value.trim();
+        let altMobile = document.getElementById('orderAltMobile').value.trim();
+        let province = document.getElementById('orderProvince').value;
+        
+        if(!name || !city || !address || !landmark || !mobile || !province) {
+            Swal.fire('Error', 'Please fill all required fields', 'error');
+            return;
+        }
+        
+        // Create form data
+        let formData = new FormData();
+        formData.append('product', currentOrderProduct.name);
+        formData.append('price', currentOrderProduct.price);
+        formData.append('name', name);
+        formData.append('city', city);
+        formData.append('address', address);
+        formData.append('landmark', landmark);
+        formData.append('mobile', mobile);
+        formData.append('alt_mobile', altMobile);
+        formData.append('province', province);
+        
+        fetch('https://formspree.io/f/xkoqnkze', {
+            method: 'POST',
+            body: formData,
+            headers: { 'Accept': 'application/json' }
+        }).then(res => {
+            if(res.ok) {
+                Swal.fire({ icon: 'success', title: 'Order Submitted!', text: 'Admin will contact you soon.', timer: 3000 });
+                // Save to local orders
+                let order = { id: Date.now(), productName: currentOrderProduct.name, price: currentOrderProduct.price, status: 'Pending', date: new Date().toLocaleString() };
+                orders.unshift(order);
+                saveAll();
+                renderOrders();
+                closeOrderFormModal();
+            } else {
+                Swal.fire('Error', 'Submission failed. Please try again.', 'error');
+            }
+        }).catch(() => Swal.fire('Error', 'Network error. Please try again.', 'error'));
     }
 
     let clientName = localStorage.getItem('gm_client_name');
@@ -277,7 +364,7 @@
     }
 
     function renderFav() { let container = document.getElementById('favoritesList'); if(favorites.length===0) container.innerHTML='<p style="padding:40px;text-align:center">No favorites yet</p>'; else container.innerHTML = favorites.map(p => `<div style="background:white; border-radius:20px; padding:15px; margin-bottom:10px"><h4>${p.name}</h4><p>Rs. ${(p.price - (p.price*(p.discount||0)/100)).toLocaleString()}</p></div>`).join(''); }
-    function renderOrders() { let container = document.getElementById('ordersList'); if(orders.length===0) container.innerHTML='<p style="padding:40px;text-align:center">No orders yet</p>'; else container.innerHTML = orders.map(o => `<div style="background:white; border-radius:20px; padding:15px; margin-bottom:10px"><h4>${o.productName}</h4><p>Rs. ${o.price.toLocaleString()}</p><span style="background:#e0e0e0; padding:2px 12px; border-radius:20px">${o.status}</span></div>`).join(''); }
+    function renderOrders() { let container = document.getElementById('ordersList'); if(orders.length===0) container.innerHTML='<p style="padding:40px;text-align:center">No orders yet</p>'; else container.innerHTML = orders.map(o => `<div style="background:white; border-radius:20px; padding:15px; margin-bottom:10px"><h4>${o.productName}</h4><p>Rs. ${o.price.toLocaleString()}</p><span style="background:#e0e0e0; padding:2px 12px; border-radius:20px">${o.status}</span><br><small>${o.date || ''}</small></div>`).join(''); }
 
     function switchPage(page) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page')); document.getElementById(page + 'Page').classList.add('active-page'); document.querySelectorAll('.tab-icon').forEach((t,i) => { t.classList.toggle('active', (page==='home' && i===0) || (page==='favorites' && i===1) || (page==='orders' && i===2)); }); if(page === 'favorites') renderFav(); if(page === 'orders') renderOrders(); if(page === 'home') renderStore(); }
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('active'); renderChat(); }
