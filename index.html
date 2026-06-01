@@ -2,354 +2,89 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>GM Store | Admin + Client Products Separated</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>GM Store | Shop</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            padding-bottom: 85px;
-            overflow-x: hidden;
-        }
-
-        .animated-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -2;
-            background: linear-gradient(125deg, #ff9a9e, #fad0c4, #fad0c4, #a1c4fd, #c2e9fb);
-            background-size: 400% 400%;
-            animation: gradientFlow 12s ease infinite;
-        }
-        @keyframes gradientFlow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* header */
-        .header {
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(15px);
-            padding: 14px 24px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
-        .header-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .logo-icon {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(145deg, #ff6b6b, #a29bfe);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; padding-bottom: 85px; }
+        .header { background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); padding: 14px 24px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { width: 45px; height: 45px; background: linear-gradient(145deg, #ff6b6b, #a29bfe); border-radius: 15px; display: flex; align-items: center; justify-content: center; }
         .logo-icon i { font-size: 24px; color: white; }
-        .logo h1 {
-            font-size: 26px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #ff6b6b, #a29bfe, #fdcb6e);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .header-actions {
-            display: flex;
-            gap: 20px;
-        }
-        .header-actions i {
-            font-size: 22px;
-            cursor: pointer;
-            color: #ff6b6b;
-        }
-        .menu-btn {
-            background: linear-gradient(145deg, #ff6b6b, #a29bfe);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 40px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* SIDEBAR */
-        .sidebar {
-            position: fixed;
-            right: -380px;
-            top: 80px;
-            width: 360px;
-            height: calc(100vh - 100px);
-            background: rgba(255,255,255,0.98);
-            backdrop-filter: blur(20px);
-            border-radius: 28px 0 0 28px;
-            box-shadow: -5px 5px 30px rgba(0,0,0,0.15);
-            z-index: 200;
-            transition: right 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            border-left: 3px solid #ff6b6b;
-        }
-        .sidebar.open { right: 0; }
-        .sidebar-header {
-            background: linear-gradient(95deg, #ff6b6b, #a29bfe);
-            padding: 18px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .sidebar-tabs {
-            display: flex;
-            border-bottom: 1px solid #eee;
-        }
-        .sidebar-tab {
-            flex: 1;
-            padding: 14px;
-            text-align: center;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .sidebar-tab.active { color: #ff6b6b; border-bottom: 3px solid #ff6b6b; }
-        .sidebar-content { flex: 1; overflow-y: auto; padding: 16px; }
-        .chat-messages-side { height: 350px; overflow-y: auto; margin-bottom: 12px; }
-        .message-bubble { margin-bottom: 12px; }
-        .client-msg { display: flex; justify-content: flex-end; }
-        .client-msg .bubble { background: #ff6b6b; color: white; border-radius: 20px 20px 5px 20px; }
-        .admin-msg .bubble { background: #f0f0f0; border-radius: 20px 20px 20px 5px; }
-        .bubble { padding: 10px 14px; max-width: 85%; font-size: 13px; }
-        .sidebar-input { display: flex; gap: 10px; margin-top: 10px; }
-        .sidebar-input input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 40px; }
-        .send-btn { background: #ff6b6b; border: none; width: 45px; border-radius: 50%; color: white; cursor: pointer; }
-        .request-form-side input, .request-form-side textarea, .request-form-side select {
-            width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 16px; border: 1px solid #ddd;
-        }
-        .img-preview-small { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
-        .preview-thumb { width: 50px; height: 50px; border-radius: 10px; object-fit: cover; }
-        .overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.3); z-index: 150; display: none;
-        }
-        .overlay.active { display: block; }
-
-        /* main content */
+        .logo h1 { font-size: 26px; font-weight: 800; background: linear-gradient(135deg, #ff6b6b, #a29bfe, #fdcb6e); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .menu-btn { background: linear-gradient(145deg, #ff6b6b, #a29bfe); border: none; padding: 8px 20px; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
         .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
-        .shopping-cover {
-            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
-            background-size: 300% 300%;
-            animation: bgPan 8s ease infinite;
-            border-radius: 32px;
-            padding: 45px 30px;
-            margin: 20px 0 30px;
-            color: white;
-        }
-        @keyframes bgPan {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 100% 50%; }
-        }
-        .shopping-cover h1 { font-size: 42px; margin-bottom: 10px; }
-        .stats-row { display: flex; gap: 25px; margin-top: 20px; flex-wrap: wrap; }
-        .stat-card { background: rgba(255,255,255,0.2); backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 60px; }
-
-        .section-head {
-            margin: 30px 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .hero { background: linear-gradient(135deg, #667eea, #764ba2, #f093fb); background-size: 300% 300%; animation: bgPan 8s ease infinite; border-radius: 32px; padding: 45px 30px; margin: 20px 0 30px; color: white; }
+        @keyframes bgPan { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+        .hero h1 { font-size: 42px; margin-bottom: 10px; }
+        .section-head { margin: 30px 0 20px; display: flex; justify-content: space-between; align-items: center; }
         .section-head h2 { font-size: 24px; font-weight: 700; }
         .admin-badge { background: #ff6b6b20; color: #ff6b6b; padding: 5px 12px; border-radius: 30px; font-size: 12px; }
         .client-badge { background: #a29bfe20; color: #6c5ce7; padding: 5px 12px; border-radius: 30px; font-size: 12px; }
-
         .cat-scroll { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
-        .cat-item {
-            background: white; padding: 10px 22px; border-radius: 60px; display: flex;
-            align-items: center; gap: 8px; cursor: pointer; font-weight: 500;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .product-section {
-            margin-bottom: 40px;
-            background: rgba(255,255,255,0.5);
-            border-radius: 28px;
-            padding: 20px;
-        }
-        .product-section-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid rgba(0,0,0,0.1);
-        }
-        .product-section-title i { font-size: 28px; }
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 24px;
-        }
-        .product-card {
-            background: white;
-            border-radius: 24px;
-            overflow: hidden;
-            transition: 0.2s;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-        }
+        .cat-item { background: white; padding: 10px 22px; border-radius: 60px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .product-section { margin-bottom: 40px; background: rgba(255,255,255,0.5); border-radius: 28px; padding: 20px; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+        .product-card { background: white; border-radius: 24px; overflow: hidden; transition: 0.2s; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
         .product-card:hover { transform: translateY(-5px); }
         .product-img { width: 100%; height: 190px; object-fit: cover; }
         .product-body { padding: 16px; }
         .product-title { font-weight: 700; font-size: 15px; }
         .product-price { font-size: 20px; font-weight: 800; color: #ff6b6b; margin: 8px 0; }
-        .seller-badge {
-            display: inline-block;
-            font-size: 11px;
-            padding: 3px 10px;
-            border-radius: 20px;
-            margin-bottom: 8px;
-        }
+        .seller-badge { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 20px; margin-bottom: 8px; }
         .seller-admin { background: #ffe0e0; color: #ff6b6b; }
         .seller-client { background: #e0e7ff; color: #6c5ce7; }
-        .btn-group { display: flex; gap: 10px; margin-top: 12px; }
-        .btn-sm {
-            flex: 1; padding: 8px; border-radius: 40px; border: none;
-            font-weight: 600; cursor: pointer;
-        }
-        .btn-primary { background: linear-gradient(145deg, #ff6b6b, #a29bfe); color: white; }
-        .btn-outline { background: white; border: 1.5px solid #ff6b6b; color: #ff6b6b; }
-
-        .bottom-bar {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: white; display: flex; justify-content: space-around;
-            padding: 12px; z-index: 99; box-shadow: 0 -2px 15px rgba(0,0,0,0.1);
-        }
+        .btn-buy { background: linear-gradient(145deg, #ff6b6b, #a29bfe); width: 100%; padding: 10px; border-radius: 40px; border: none; color: white; font-weight: 600; cursor: pointer; margin-top: 12px; }
+        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 12px; z-index: 99; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); }
         .tab-icon { text-align: center; cursor: pointer; opacity: 0.5; }
         .tab-icon.active { opacity: 1; color: #ff6b6b; }
         .page { display: none; }
         .page.active-page { display: block; }
-
-        @media (max-width: 680px) {
-            .sidebar { width: 320px; }
-            .shopping-cover h1 { font-size: 28px; }
-            .product-section { padding: 12px; }
-        }
+        .sidebar { position: fixed; right: -380px; top: 80px; width: 360px; height: calc(100vh - 100px); background: rgba(255,255,255,0.98); backdrop-filter: blur(20px); border-radius: 28px 0 0 28px; box-shadow: -5px 5px 30px rgba(0,0,0,0.15); z-index: 200; transition: right 0.3s; display: flex; flex-direction: column; overflow: hidden; }
+        .sidebar.open { right: 0; }
+        .sidebar-header { background: linear-gradient(95deg, #ff6b6b, #a29bfe); padding: 18px; color: white; display: flex; justify-content: space-between; }
+        .sidebar-tabs { display: flex; border-bottom: 1px solid #eee; }
+        .sidebar-tab { flex: 1; padding: 14px; text-align: center; cursor: pointer; font-weight: 600; }
+        .sidebar-tab.active { color: #ff6b6b; border-bottom: 3px solid #ff6b6b; }
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 16px; }
+        .chat-messages { height: 350px; overflow-y: auto; margin-bottom: 12px; }
+        .message-bubble { margin-bottom: 12px; }
+        .client-msg { display: flex; justify-content: flex-end; }
+        .client-msg .bubble { background: #ff6b6b; color: white; border-radius: 20px 20px 5px 20px; }
+        .admin-msg .bubble { background: #f0f0f0; border-radius: 20px 20px 20px 5px; }
+        .bubble { padding: 10px 14px; max-width: 85%; font-size: 13px; }
+        .chat-input-area { display: flex; gap: 10px; margin-top: 10px; }
+        .chat-input-area input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 40px; }
+        .request-form input, .request-form textarea, .request-form select { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 16px; border: 1px solid #ddd; }
+        .img-preview { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+        .preview-thumb { width: 50px; height: 50px; border-radius: 10px; object-fit: cover; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 150; display: none; }
+        .overlay.active { display: block; }
+        @media (max-width: 680px) { .sidebar { width: 320px; } .hero h1 { font-size: 28px; } }
     </style>
 </head>
 <body>
-<div class="animated-bg"></div>
 <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 
 <header class="header">
     <div class="header-content">
         <div class="logo"><div class="logo-icon"><i class="fas fa-crown"></i></div><h1>GM Store</h1></div>
-        <div class="header-actions">
-            <i class="fas fa-heart" onclick="switchPage('favorites')"></i>
-            <i class="fas fa-shopping-bag" onclick="switchPage('orders')"></i>
-            <button class="menu-btn" onclick="toggleSidebar()"><i class="fas fa-comment-dots"></i> Support</button>
-        </div>
+        <button class="menu-btn" onclick="toggleSidebar()"><i class="fas fa-comment-dots"></i> Support / Sell</button>
     </div>
 </header>
 
-<!-- SIDEBAR -->
-<div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <span><i class="fas fa-headset"></i> Customer Hub</span>
-        <i class="fas fa-times" onclick="closeSidebar()" style="cursor:pointer"></i>
-    </div>
-    <div class="sidebar-tabs">
-        <div class="sidebar-tab active" data-tab="chatTab" onclick="switchSidebarTab('chat')"><i class="fab fa-whatsapp"></i> Chat</div>
-        <div class="sidebar-tab" data-tab="requestTab" onclick="switchSidebarTab('request')"><i class="fas fa-plus-circle"></i> Add Product</div>
-    </div>
-    <div class="sidebar-content">
-        <div id="chatPanel" class="sidebar-panel">
-            <div class="chat-messages-side" id="sidebarChatMessages"></div>
-            <div class="sidebar-input">
-                <input type="text" id="sidebarChatInput" placeholder="Type message...">
-                <button class="send-btn" onclick="sendSidebarMessage()"><i class="fas fa-paper-plane"></i></button>
-            </div>
-        </div>
-        <div id="requestPanel" class="sidebar-panel" style="display:none">
-            <h4 style="margin-bottom:12px">Request Product Addition</h4>
-            <input type="text" id="sideReqName" placeholder="Product Name *">
-            <select id="sideReqCategory"></select>
-            <input type="number" id="sideReqPrice" placeholder="Price USD *">
-            <input type="number" id="sideReqStock" placeholder="Stock *">
-            <input type="text" id="sideReqWhatsapp" placeholder="Your WhatsApp *">
-            <input type="text" id="sideReqSellerName" placeholder="Your Name *">
-            <textarea id="sideReqDesc" rows="2" placeholder="Description *"></textarea>
-            <input type="file" id="sideReqImages" multiple accept="image/*" style="margin:8px 0">
-            <div id="sideImgPreview" class="img-preview-small"></div>
-            <button class="btn-primary" style="width:100%; padding:12px; border-radius:40px;" onclick="sendSidebarProductRequest()"><i class="fas fa-paper-plane"></i> Send to Admin</button>
-        </div>
-    </div>
-</div>
-
 <div class="container">
     <div id="homePage" class="page active-page">
-        <div class="shopping-cover">
-            <h1>Shop Smarter,<br>Live Better 🛍️</h1>
-            <p>Global Marketplace | Admin + Community Products</p>
-            <div class="stats-row">
-                <div class="stat-card"><i class="fas fa-store"></i> 10K+ Sellers</div>
-                <div class="stat-card"><i class="fas fa-box"></i> 500K+ Products</div>
-                <div class="stat-card"><i class="fas fa-truck"></i> Fast Delivery</div>
-            </div>
-        </div>
-
+        <div class="hero"><h1>Shop Smarter,<br>Live Better 🛍️</h1><p>Official Store + Community Products</p></div>
         <div class="section-head"><h2><i class="fas fa-th-large"></i> Categories</h2></div>
         <div class="cat-scroll" id="categoriesList"></div>
-
-        <!-- ADMIN PRODUCTS SECTION -->
-        <div class="product-section">
-            <div class="product-section-title">
-                <i class="fas fa-crown" style="color:#ff6b6b"></i>
-                <h2>👑 Admin Products (Official Store)</h2>
-                <span class="admin-badge">Verified</span>
-            </div>
-            <div class="product-grid" id="adminProductsGrid"></div>
-        </div>
-
-        <!-- CLIENT PRODUCTS SECTION -->
-        <div class="product-section">
-            <div class="product-section-title">
-                <i class="fas fa-users" style="color:#6c5ce7"></i>
-                <h2>🌟 Community Products (Added by Users)</h2>
-                <span class="client-badge">Approved by Admin</span>
-            </div>
-            <div class="product-grid" id="clientProductsGrid"></div>
-        </div>
+        <div class="product-section"><div class="section-head"><h2>👑 Official Store</h2><span class="admin-badge">Verified by Admin</span></div><div class="product-grid" id="adminProductsGrid"></div></div>
+        <div class="product-section"><div class="section-head"><h2>🌟 Community Products</h2><span class="client-badge">Approved by Admin</span></div><div class="product-grid" id="communityProductsGrid"></div></div>
     </div>
-
     <div id="favoritesPage" class="page"><h2 style="margin:20px 0"><i class="fas fa-heart" style="color:#ff6b6b"></i> My Wishlist</h2><div id="favoritesList"></div></div>
     <div id="ordersPage" class="page"><h2 style="margin:20px 0"><i class="fas fa-truck"></i> My Orders</h2><div id="ordersList"></div></div>
 </div>
@@ -360,295 +95,178 @@
     <div class="tab-icon" onclick="switchPage('orders')"><i class="fas fa-list-ul"></i><span>Orders</span></div>
 </div>
 
-<!-- Order Modal -->
-<div id="orderModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); z-index:300; justify-content:center; align-items:center;">
-    <div style="background:white; width:90%; max-width:500px; border-radius:32px; padding:24px;">
-        <i class="fas fa-times" onclick="closeOrderModal()" style="float:right; font-size:22px; cursor:pointer"></i>
-        <h3>Complete Order</h3>
-        <div id="orderProductInfo"></div>
-        <input type="text" id="customerName" placeholder="Full Name *" style="width:100%; padding:12px; margin:8px 0; border-radius:16px; border:1px solid #ddd">
-        <input type="text" id="customerMobile" placeholder="Mobile *" style="width:100%; padding:12px; margin:8px 0; border-radius:16px; border:1px solid #ddd">
-        <input type="text" id="customerWhatsapp" placeholder="WhatsApp *" style="width:100%; padding:12px; margin:8px 0; border-radius:16px; border:1px solid #ddd">
-        <input type="text" id="customerCity" placeholder="City *" style="width:100%; padding:12px; margin:8px 0; border-radius:16px; border:1px solid #ddd">
-        <input type="text" id="customerArea" placeholder="Area *" style="width:100%; padding:12px; margin:8px 0; border-radius:16px; border:1px solid #ddd">
-        <textarea id="customerAddress" rows="2" placeholder="Full Address *" style="width:100%; padding:12px; margin:8px 0; border-radius:16px; border:1px solid #ddd"></textarea>
-        <input type="text" id="customerLandmark" placeholder="Landmark *" style="width:100%; padding:12px; margin:8px 0; border-radius:16px; border:1px solid #ddd">
-        <button class="btn-primary" style="width:100%; padding:14px; border-radius:40px;" onclick="submitOrder()">Confirm Order</button>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header"><span><i class="fas fa-headset"></i> Customer Hub</span><i class="fas fa-times" onclick="closeSidebar()" style="cursor:pointer"></i></div>
+    <div class="sidebar-tabs"><div class="sidebar-tab active" data-tab="chat" onclick="switchSidebarTab('chat')"><i class="fab fa-whatsapp"></i> Chat</div><div class="sidebar-tab" data-tab="request" onclick="switchSidebarTab('request')"><i class="fas fa-plus-circle"></i> Sell Product</div></div>
+    <div class="sidebar-content">
+        <div id="chatPanel">
+            <div class="chat-messages" id="sidebarChatMessages"></div>
+            <div class="chat-input-area"><input type="text" id="chatInput" placeholder="Type message..."><button class="menu-btn" onclick="sendMessage()" style="padding:8px 16px">Send</button></div>
+        </div>
+        <div id="requestPanel" style="display:none">
+            <h4 style="margin-bottom:12px">Request to Add Product</h4>
+            <div class="request-form">
+                <input type="text" id="reqName" placeholder="Product Name *">
+                <select id="reqCategory"></select>
+                <input type="number" id="reqPrice" placeholder="Price USD *">
+                <input type="number" id="reqStock" placeholder="Stock *">
+                <input type="text" id="reqWhatsapp" placeholder="Your WhatsApp *">
+                <input type="text" id="reqSellerName" placeholder="Your Name *">
+                <textarea id="reqDesc" rows="2" placeholder="Description *"></textarea>
+                <input type="file" id="reqImages" multiple accept="image/*">
+                <div id="reqImgPreview" class="img-preview"></div>
+                <button class="menu-btn" style="width:100%; margin-top:10px" onclick="submitProductRequest()"><i class="fas fa-paper-plane"></i> Send to Admin</button>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    // ========== DATA ==========
-    // Admin Products (Official)
-    let adminProducts = [
-        { id: 1, name: "iPhone 15 Pro Max", price: 1399, discount: 8, stock: 12, whatsapp: "+923451234567", category: "Electronics", images: ["https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400"], addedBy: "admin", sellerName: "GM Official" },
-        { id: 2, name: "Nike Air Max 2025", price: 189, discount: 12, stock: 28, whatsapp: "+923451234567", category: "Fashion", images: ["https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400"], addedBy: "admin", sellerName: "GM Official" },
-        { id: 3, name: "Samsung Galaxy S24 Ultra", price: 1499, discount: 5, stock: 9, whatsapp: "+923451234567", category: "Electronics", images: ["https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400"], addedBy: "admin", sellerName: "GM Official" },
-        { id: 4, name: "Sony WH-1000XM5", price: 399, discount: 15, stock: 22, whatsapp: "+923451234567", category: "Electronics", images: ["https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=400"], addedBy: "admin", sellerName: "GM Official" }
-    ];
-    
-    let categories = { "Electronics": "https://cdn-icons-png.flaticon.com/512/3659/3659898.png", "Fashion": "https://cdn-icons-png.flaticon.com/512/6174/6174039.png", "Home Decor": "https://cdn-icons-png.flaticon.com/512/2543/2543366.png" };
-    let favorites = JSON.parse(localStorage.getItem('gm_fav')) || [];
+    // ========== DATA (Sync with admin.html via localStorage) ==========
+    let adminProducts = JSON.parse(localStorage.getItem('gm_admin_products')) || [];
+    let categories = JSON.parse(localStorage.getItem('gm_categories')) || { "Electronics": "https://cdn-icons-png.flaticon.com/512/3659/3659898.png", "Fashion": "https://cdn-icons-png.flaticon.com/512/6174/6174039.png", "Home Decor": "https://cdn-icons-png.flaticon.com/512/2543/2543366.png" };
+    let clientRequests = JSON.parse(localStorage.getItem('gm_client_requests')) || [];
+    let clientChats = JSON.parse(localStorage.getItem('gm_client_chats')) || {};
+    let favorites = JSON.parse(localStorage.getItem('gm_favorites')) || [];
     let orders = JSON.parse(localStorage.getItem('gm_orders')) || [];
-    let chatMsgs = JSON.parse(localStorage.getItem('gm_chat_msgs')) || [{ sender: 'admin', message: '👋 Welcome! Admin & Community products are separate!', time: new Date().toISOString() }];
-    let clientProductRequests = JSON.parse(localStorage.getItem('gm_client_requests')) || [];
-    
-    // Get approved client products
-    function getApprovedClientProducts() {
-        return clientProductRequests.filter(req => req.status === 'approved').map(req => ({
-            id: req.id,
-            name: req.product.name,
-            price: req.product.price,
-            discount: 0,
-            stock: req.product.stock,
-            whatsapp: req.seller.whatsapp,
-            category: req.product.category,
-            images: req.product.images,
-            addedBy: "client",
-            sellerName: req.seller.name,
-            description: req.product.description
+
+    function getApprovedCommunityProducts() {
+        return clientRequests.filter(r => r.status === 'approved').map(r => ({
+            id: r.id, name: r.product.name, price: r.product.price, discount: 0, stock: r.product.stock,
+            whatsapp: r.seller.whatsapp, category: r.product.category, images: r.product.images,
+            description: r.product.description, addedBy: "client", sellerName: r.seller.name
         }));
     }
-    
+
     function saveAll() {
-        localStorage.setItem('gm_fav', JSON.stringify(favorites));
+        localStorage.setItem('gm_client_requests', JSON.stringify(clientRequests));
+        localStorage.setItem('gm_client_chats', JSON.stringify(clientChats));
+        localStorage.setItem('gm_favorites', JSON.stringify(favorites));
         localStorage.setItem('gm_orders', JSON.stringify(orders));
-        localStorage.setItem('gm_chat_msgs', JSON.stringify(chatMsgs));
-        localStorage.setItem('gm_client_requests', JSON.stringify(clientProductRequests));
     }
-    
+
+    function getPrice(p) { let final = p.price - (p.price * (p.discount||0)/100); return final.toFixed(2); }
+
     function renderCategories() {
         let container = document.getElementById('categoriesList');
-        if(container) container.innerHTML = Object.keys(categories).map(c => `<div class="cat-item" onclick="filterByCategory('${c}')"><img src="${categories[c]}" width="24"><span>${c}</span></div>`).join('');
-        let sideCat = document.getElementById('sideReqCategory');
-        if(sideCat) sideCat.innerHTML = '<option value="">Select Category</option>' + Object.keys(categories).map(c => `<option value="${c}">${c}</option>`).join('');
+        if(container) container.innerHTML = `<div class="cat-item" onclick="filterProducts('all')">All</div>` + Object.keys(categories).map(c => `<div class="cat-item" onclick="filterProducts('${c}')"><img src="${categories[c]}" width="24"><span>${c}</span></div>`).join('');
+        let catSelect = document.getElementById('reqCategory');
+        if(catSelect) catSelect.innerHTML = Object.keys(categories).map(c => `<option value="${c}">${c}</option>`).join('');
     }
-    
-    function filterByCategory(cat) {
-        let filteredAdmin = adminProducts.filter(p => p.category === cat);
-        let filteredClient = getApprovedClientProducts().filter(p => p.category === cat);
-        renderAdminProducts(filteredAdmin);
-        renderClientProducts(filteredClient);
+
+    let currentFilter = 'all';
+    function filterProducts(cat) { currentFilter = cat; renderStore(); }
+
+    function renderStore() {
+        let adminFiltered = adminProducts.filter(p => currentFilter === 'all' ? true : p.category === currentFilter);
+        let communityFiltered = getApprovedCommunityProducts().filter(p => currentFilter === 'all' ? true : p.category === currentFilter);
+        document.getElementById('adminProductsGrid').innerHTML = adminFiltered.map(p => productCard(p, 'admin')).join('');
+        document.getElementById('communityProductsGrid').innerHTML = communityFiltered.map(p => productCard(p, 'community')).join('');
+        if(communityFiltered.length === 0) document.getElementById('communityProductsGrid').innerHTML = '<div style="padding:40px;text-align:center">✨ No community products yet. Click Support → Sell Product to request!</div>';
     }
-    
-    function getPrice(p) { let final = p.price - (p.price * (p.discount||0)/100); return final.toFixed(2); }
-    
-    function renderAdminProducts(productList = null) {
-        let grid = document.getElementById('adminProductsGrid');
-        let list = productList || adminProducts;
-        if(list.length === 0) { grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; padding:40px;">No admin products</p>'; return; }
-        grid.innerHTML = list.map(p => {
-            let isFav = favorites.some(f => f.id === p.id);
-            return `<div class="product-card">
-                <img src="${p.images[0]}" class="product-img" onerror="this.src='https://placehold.co/400x200?text=Product'">
-                <div class="product-body">
-                    <span class="seller-badge seller-admin"><i class="fas fa-crown"></i> Official Store</span>
-                    <div class="product-title">${p.name}</div>
-                    <div class="product-price">$${getPrice(p)}</div>
-                    <div class="btn-group">
-                        <button class="btn-sm btn-outline" onclick="viewProduct(${p.id}, 'admin')"><i class="fas fa-eye"></i></button>
-                        <button class="btn-sm btn-primary" onclick="openOrderForm(${p.id}, 'admin')"><i class="fas fa-cart"></i> Buy</button>
-                        <button class="btn-sm btn-outline" onclick="toggleFav(${p.id}, 'admin')"><i class="fas fa-heart"></i></button>
-                    </div>
-                </div>
-            </div>`;
-        }).join('');
+
+    function productCard(p, type) {
+        let isFav = favorites.some(f => f.id === p.id);
+        return `<div class="product-card"><img src="${p.images[0]}" class="product-img" onerror="this.src='https://placehold.co/400x200'"><div class="product-body"><span class="seller-badge ${type === 'admin' ? 'seller-admin' : 'seller-client'}">${type === 'admin' ? '🏬 Official Store' : '👥 '+p.sellerName}</span><div class="product-title">${escapeHtml(p.name)}</div><div class="product-price">$${getPrice(p)}</div><button class="btn-buy" onclick="buyProduct('${escapeHtml(p.name)}', '${getPrice(p)}', '${p.whatsapp}')"><i class="fab fa-whatsapp"></i> Order via WhatsApp</button></div></div>`;
     }
-    
-    function renderClientProducts(productList = null) {
-        let grid = document.getElementById('clientProductsGrid');
-        let list = productList || getApprovedClientProducts();
-        if(list.length === 0) { grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; padding:40px;">No community products yet. Click Support → Add Product to request!</p>'; return; }
-        grid.innerHTML = list.map(p => {
-            let isFav = favorites.some(f => f.id === p.id);
-            return `<div class="product-card">
-                <img src="${p.images[0]}" class="product-img" onerror="this.src='https://placehold.co/400x200?text=Product'">
-                <div class="product-body">
-                    <span class="seller-badge seller-client"><i class="fas fa-user"></i> Added by ${p.sellerName}</span>
-                    <div class="product-title">${p.name}</div>
-                    <div class="product-price">$${getPrice(p)}</div>
-                    <div class="btn-group">
-                        <button class="btn-sm btn-outline" onclick="viewProduct(${p.id}, 'client')"><i class="fas fa-eye"></i></button>
-                        <button class="btn-sm btn-primary" onclick="openOrderForm(${p.id}, 'client')"><i class="fas fa-cart"></i> Buy</button>
-                        <button class="btn-sm btn-outline" onclick="toggleFav(${p.id}, 'client')"><i class="fas fa-heart"></i></button>
-                    </div>
-                </div>
-            </div>`;
-        }).join('');
+
+    function buyProduct(name, price, whatsapp) {
+        Swal.fire({ title: `Buy ${name}`, text: `Price $${price}. Contact seller on WhatsApp?`, icon: 'info', showCancelButton: true, confirmButtonText: 'Chat Now' }).then(res => {
+            if(res.isConfirmed) window.open(`https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}?text=Hi%2C%20I%20want%20to%20buy%20${encodeURIComponent(name)}`, '_blank');
+        });
     }
-    
-    function getAllProducts() {
-        return [...adminProducts, ...getApprovedClientProducts()];
+
+    // Sidebar Chat
+    let clientId = "client_" + Date.now();
+    let clientName = localStorage.getItem('gm_client_name') || "Guest";
+    if(clientName === "Guest") { clientName = prompt("Enter your name for chat:", "Customer"); if(clientName) localStorage.setItem('gm_client_name', clientName); else clientName = "Customer"; }
+
+    function sendMessage() {
+        let msg = document.getElementById('chatInput').value.trim();
+        if(!msg) return;
+        let chats = clientChats["global"] || [];
+        chats.push({ sender: 'client', senderName: clientName, message: msg, time: new Date().toLocaleString() });
+        clientChats["global"] = chats;
+        saveAll();
+        renderChat();
+        document.getElementById('chatInput').value = '';
     }
-    
-    function getProductById(id, type) {
-        if(type === 'admin') return adminProducts.find(p => p.id === id);
-        return getApprovedClientProducts().find(p => p.id === id);
-    }
-    
-    function viewProduct(id, type) {
-        let p = getProductById(id, type);
-        Swal.fire({ title: p.name, html: `<img src="${p.images[0]}" width="100%" style="border-radius:16px"><p>$${getPrice(p)}</p><p>⭐ 4.8</p>`, confirmButtonColor: '#ff6b6b' });
-    }
-    
-    function toggleFav(id, type) {
-        let all = getAllProducts();
-        let p = all.find(p => p.id === id);
-        if(favorites.some(f => f.id === id)) favorites = favorites.filter(f => f.id !== id);
-        else favorites.push(p);
-        saveAll(); renderAdminProducts(); renderClientProducts(); renderFav();
-        Swal.fire({ icon: 'success', toast: true, timer: 1000, showConfirmButton: false });
-    }
-    
-    function renderFav() {
-        let cont = document.getElementById('favoritesList');
-        if(favorites.length === 0) cont.innerHTML = '<div style="padding:40px;text-align:center">❤️ No favorites</div>';
-        else cont.innerHTML = favorites.map(p => `<div style="background:white; border-radius:24px; padding:15px; margin-bottom:12px; display:flex; gap:15px;"><img src="${p.images[0]}" width="60" style="border-radius:12px"><div><h4>${p.name}</h4><p>$${getPrice(p)}</p><span class="seller-badge ${p.addedBy === 'admin' ? 'seller-admin' : 'seller-client'}">${p.addedBy === 'admin' ? 'Official' : p.sellerName}</span></div><button class="btn-sm btn-primary" style="margin-left:auto" onclick="removeFav(${p.id})"><i class="fas fa-trash"></i></button></div>`).join('');
-    }
-    function removeFav(id) { favorites = favorites.filter(f => f.id !== id); saveAll(); renderFav(); renderAdminProducts(); renderClientProducts(); }
-    
-    let selectedProductForOrder = null;
-    function openOrderForm(id, type) {
-        selectedProductForOrder = getProductById(id, type);
-        document.getElementById('orderProductInfo').innerHTML = `<img src="${selectedProductForOrder.images[0]}" width="50" style="border-radius:12px"> ${selectedProductForOrder.name} - $${getPrice(selectedProductForOrder)}`;
-        document.getElementById('orderModal').style.display = 'flex';
-    }
-    function closeOrderModal() { document.getElementById('orderModal').style.display = 'none'; }
-    function submitOrder() {
-        let name = document.getElementById('customerName').value.trim();
-        let mobile = document.getElementById('customerMobile').value.trim();
-        let whatsapp = document.getElementById('customerWhatsapp').value.trim();
-        let city = document.getElementById('customerCity').value.trim();
-        let area = document.getElementById('customerArea').value.trim();
-        let address = document.getElementById('customerAddress').value.trim();
-        let landmark = document.getElementById('customerLandmark').value.trim();
-        if(!name || !mobile || !whatsapp || !city || !area || !address || !landmark) { Swal.fire('Error','Fill all fields','error'); return; }
-        let order = { id: Date.now(), productName: selectedProductForOrder.name, finalPrice: getPrice(selectedProductForOrder), image: selectedProductForOrder.images[0], customer: { name, mobile, whatsapp }, address: { city, area, fullAddress: address, landmark }, status: 'pending', date: new Date().toLocaleString() };
-        orders.unshift(order); saveAll(); renderOrders(); addChatMessage('system', `📦 New Order: ${selectedProductForOrder.name} by ${name}`); Swal.fire({ icon: 'success', title: 'Order Placed!', timer: 2000 }); closeOrderModal(); switchPage('orders');
-    }
-    function renderOrders() {
-        let cont = document.getElementById('ordersList');
-        if(orders.length === 0) cont.innerHTML = '<div style="padding:40px;text-align:center">No orders</div>';
-        else cont.innerHTML = orders.map(o => `<div style="background:white; border-radius:24px; padding:15px; margin-bottom:12px;"><div style="display:flex; gap:15px"><img src="${o.image}" width="60" style="border-radius:12px"><div><h4>${o.productName}</h4><p>$${o.finalPrice}</p><span style="background:#ffe0e0; padding:2px 12px; border-radius:30px">${o.status}</span></div></div></div>`).join('');
-    }
-    
-    // SIDEBAR FUNCTIONS
-    function sendSidebarMessage() {
-        let msg = document.getElementById('sidebarChatInput').value.trim();
-        if(msg) { addChatMessage('client', msg); document.getElementById('sidebarChatInput').value = ''; renderSidebarChat(); }
-    }
-    function addChatMessage(sender, message) {
-        chatMsgs.push({ sender, message, time: new Date().toISOString() });
-        saveAll(); renderSidebarChat();
-    }
-    function renderSidebarChat() {
+
+    function renderChat() {
         let container = document.getElementById('sidebarChatMessages');
-        if(container) container.innerHTML = chatMsgs.slice(-30).map(m => `<div class="message-bubble ${m.sender === 'client' ? 'client-msg' : 'admin-msg'}"><div class="bubble">${escapeHtml(m.message)}<div style="font-size:9px; opacity:0.7">${new Date(m.time).toLocaleTimeString()}</div></div></div>`).join('');
-        if(container) container.scrollTop = container.scrollHeight;
+        let chats = clientChats["global"] || [];
+        container.innerHTML = chats.slice(-40).map(m => `<div class="message-bubble ${m.sender === 'client' ? 'client-msg' : 'admin-msg'}"><div class="bubble"><strong>${m.sender === 'client' ? clientName : 'Admin'}:</strong> ${escapeHtml(m.message)}<div style="font-size:9px;opacity:0.7">${m.time}</div></div></div>`).join('');
+        container.scrollTop = container.scrollHeight;
     }
-    
-    let sideUploadedImages = [];
-    document.getElementById('sideReqImages')?.addEventListener('change', function(e) {
+
+    // Product Request
+    let requestImages = [];
+    document.getElementById('reqImages')?.addEventListener('change', function(e) {
         let files = Array.from(e.target.files);
-        if(files.length > 5) { Swal.fire('Error','Max 5 images','error'); this.value=''; return; }
-        sideUploadedImages = [];
-        let container = document.getElementById('sideImgPreview');
+        if(files.length > 5) { Swal.fire('Error', 'Max 5 images', 'error'); this.value=''; return; }
+        requestImages = [];
+        let container = document.getElementById('reqImgPreview');
         container.innerHTML = '';
         files.forEach(file => {
             let reader = new FileReader();
-            reader.onload = function(ev) {
-                sideUploadedImages.push(ev.target.result);
-                let img = document.createElement('img');
-                img.src = ev.target.result;
-                img.className = 'preview-thumb';
-                container.appendChild(img);
-            };
+            reader.onload = ev => { requestImages.push(ev.target.result); let img = document.createElement('img'); img.src = ev.target.result; img.className = 'preview-thumb'; container.appendChild(img); };
             reader.readAsDataURL(file);
         });
     });
-    
-    function sendSidebarProductRequest() {
-        let name = document.getElementById('sideReqName').value.trim();
-        let cat = document.getElementById('sideReqCategory').value;
-        let price = document.getElementById('sideReqPrice').value;
-        let stock = document.getElementById('sideReqStock').value;
-        let whatsapp = document.getElementById('sideReqWhatsapp').value.trim();
-        let sellerName = document.getElementById('sideReqSellerName').value.trim();
-        let desc = document.getElementById('sideReqDesc').value.trim();
-        if(!name || !cat || !price || !stock || !whatsapp || !sellerName || !desc) { Swal.fire('Error','Fill all fields','error'); return; }
-        if(sideUploadedImages.length === 0) { Swal.fire('Error','Upload at least 1 product image','error'); return; }
-        
-        let request = {
-            id: Date.now(),
-            product: { name, category: cat, price: parseFloat(price), stock: parseInt(stock), description: desc, images: sideUploadedImages },
-            seller: { name: sellerName, whatsapp },
-            status: 'pending',
-            time: new Date().toLocaleString()
-        };
-        clientProductRequests.push(request);
+
+    function submitProductRequest() {
+        let name = document.getElementById('reqName').value.trim();
+        let category = document.getElementById('reqCategory').value;
+        let price = parseFloat(document.getElementById('reqPrice').value);
+        let stock = parseInt(document.getElementById('reqStock').value);
+        let whatsapp = document.getElementById('reqWhatsapp').value.trim();
+        let sellerName = document.getElementById('reqSellerName').value.trim();
+        let desc = document.getElementById('reqDesc').value.trim();
+        if(!name || !category || !price || !stock || !whatsapp || !sellerName || !desc) { Swal.fire('Error','Fill all fields','error'); return; }
+        if(requestImages.length === 0) { Swal.fire('Error','Upload at least 1 image','error'); return; }
+        let newRequest = { id: Date.now(), product: { name, category, price, stock, description: desc, images: [...requestImages] }, seller: { name: sellerName, whatsapp }, status: 'pending', time: new Date().toLocaleString() };
+        clientRequests.push(newRequest);
         saveAll();
-        addChatMessage('system', `📦 Product Request: ${name} by ${sellerName} (Pending Admin Approval)`);
-        Swal.fire({ icon: 'success', title: 'Request Sent!', text: 'Admin will review. Approved products appear in Community section.', confirmButtonColor: '#ff6b6b' });
-        
-        document.getElementById('sideReqName').value = '';
-        document.getElementById('sideReqPrice').value = '';
-        document.getElementById('sideReqStock').value = '';
-        document.getElementById('sideReqWhatsapp').value = '';
-        document.getElementById('sideReqSellerName').value = '';
-        document.getElementById('sideReqDesc').value = '';
-        document.getElementById('sideReqImages').value = '';
-        document.getElementById('sideImgPreview').innerHTML = '';
-        sideUploadedImages = [];
+        Swal.fire({ icon: 'success', title: 'Request Sent!', text: 'Admin will review and approve.', confirmButtonColor: '#ff6b6b' });
+        document.getElementById('reqName').value = '';
+        document.getElementById('reqPrice').value = '';
+        document.getElementById('reqStock').value = '';
+        document.getElementById('reqWhatsapp').value = '';
+        document.getElementById('reqSellerName').value = '';
+        document.getElementById('reqDesc').value = '';
+        document.getElementById('reqImages').value = '';
+        document.getElementById('reqImgPreview').innerHTML = '';
+        requestImages = [];
+        closeSidebar();
     }
-    
-    function switchSidebarTab(tab) {
-        document.getElementById('chatPanel').style.display = tab === 'chat' ? 'block' : 'none';
-        document.getElementById('requestPanel').style.display = tab === 'request' ? 'block' : 'none';
-        document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
-        if(tab === 'chat') document.querySelector('.sidebar-tab[data-tab="chatTab"]').classList.add('active');
-        else document.querySelector('.sidebar-tab[data-tab="requestTab"]').classList.add('active');
-    }
-    
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('open');
-        document.getElementById('overlay').classList.toggle('active');
-        renderSidebarChat();
-    }
-    function closeSidebar() {
-        document.getElementById('sidebar').classList.remove('open');
-        document.getElementById('overlay').classList.remove('active');
-    }
-    
+
+    // Favorites & Orders
+    function renderFav() { let container = document.getElementById('favoritesList'); if(favorites.length===0) container.innerHTML='<div style="padding:40px;text-align:center">No favorites</div>'; else container.innerHTML = favorites.map(p => `<div style="background:white;border-radius:24px;padding:15px;margin-bottom:12px;display:flex;gap:15px"><img src="${p.images[0]}" width="60" style="border-radius:12px"><div><h4>${p.name}</h4><p>$${getPrice(p)}</p></div></div>`).join(''); }
+    function renderOrders() { let container = document.getElementById('ordersList'); if(orders.length===0) container.innerHTML='<div style="padding:40px;text-align:center">No orders</div>'; else container.innerHTML = orders.map(o => `<div style="background:white;border-radius:24px;padding:15px;margin-bottom:12px"><h4>${o.productName}</h4><p>$${o.price}</p><span style="background:#ffe0e0;padding:2px 12px;border-radius:30px">${o.status}</span></div>`).join(''); }
+
     function switchPage(page) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.getElementById(page + 'Page').classList.add('active-page');
-        document.querySelectorAll('.tab-icon').forEach((t, i) => { t.classList.remove('active'); if((page==='home' && i===0) || (page==='favorites' && i===1) || (page==='orders' && i===2)) t.classList.add('active'); });
+        document.querySelectorAll('.tab-icon').forEach((t,i) => { t.classList.remove('active'); if((page==='home' && i===0) || (page==='favorites' && i===1) || (page==='orders' && i===2)) t.classList.add('active'); });
         if(page === 'favorites') renderFav();
         if(page === 'orders') renderOrders();
-        if(page === 'home') { renderAdminProducts(); renderClientProducts(); }
+        if(page === 'home') renderStore();
     }
-    
-    function escapeHtml(str) { let d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
-    
-    // Auto-approve for demo after 8 seconds
-    setInterval(() => {
-        let pending = clientProductRequests.filter(r => r.status === 'pending');
-        if(pending.length > 0) {
-            pending.forEach(req => req.status = 'approved');
-            saveAll();
-            renderClientProducts();
-            addChatMessage('system', `✅ Admin approved ${pending.length} new product(s)! Check Community Products section.`);
-        }
-    }, 8000);
-    
-    window.onload = () => {
-        renderCategories();
-        renderAdminProducts();
-        renderClientProducts();
-        renderFav();
-        renderOrders();
-        renderSidebarChat();
-    };
+
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('active'); renderChat(); }
+    function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('active'); }
+    function switchSidebarTab(tab) { document.getElementById('chatPanel').style.display = tab === 'chat' ? 'block' : 'none'; document.getElementById('requestPanel').style.display = tab === 'request' ? 'block' : 'none'; document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active')); if(tab === 'chat') document.querySelector('.sidebar-tab[data-tab="chat"]').classList.add('active'); else document.querySelector('.sidebar-tab[data-tab="request"]').classList.add('active'); }
+
+    function escapeHtml(str) { let d=document.createElement('div'); d.textContent=str; return d.innerHTML; }
+
+    // Auto-check for new approved products every 5 seconds
+    setInterval(() => { renderStore(); renderCategories(); }, 5000);
+
+    renderCategories();
+    renderStore();
+    renderFav();
+    renderOrders();
 </script>
 </body>
 </html>
