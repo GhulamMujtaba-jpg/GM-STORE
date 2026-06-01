@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>GM Store | Pakistan's Premier Marketplace</title>
+    <title>GM Store | Pakistan's Largest Marketplace</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        :root { --primary: #ff6b6b; --primary-dark: #ee5a5a; --secondary: #a29bfe; --gradient: linear-gradient(135deg, #ff6b6b, #a29bfe); }
+        :root { --primary: #ff6b6b; --secondary: #a29bfe; --gradient: linear-gradient(135deg, #ff6b6b, #a29bfe); }
         body.theme-blue { --primary: #4facfe; --secondary: #00f2fe; --gradient: linear-gradient(135deg, #4facfe, #00f2fe); }
         body.theme-green { --primary: #43e97b; --secondary: #38f9d7; --gradient: linear-gradient(135deg, #43e97b, #38f9d7); }
         body.theme-purple { --primary: #a18cd1; --secondary: #fbc2eb; --gradient: linear-gradient(135deg, #a18cd1, #fbc2eb); }
@@ -17,29 +17,27 @@
         body.theme-dark { --primary: #6c5ce7; --secondary: #a8a4e6; --gradient: linear-gradient(135deg, #6c5ce7, #a8a4e6); background: #0f0f1a; }
         body { background: linear-gradient(135deg, #f5f7fa, #c3cfe2); min-height: 100vh; padding-bottom: 85px; transition: all 0.3s; }
         body.theme-dark .product-card, body.theme-dark .cat-item, body.theme-dark .sidebar, body.theme-dark .modal-content, body.theme-dark .header { background: #1e1e2e; color: #fff; }
-        
         .header { background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); padding: 14px 24px; position: sticky; top: 0; z-index: 100; }
         .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .logo { display: flex; align-items: center; gap: 12px; }
         .logo-icon { width: 45px; height: 45px; background: var(--gradient); border-radius: 15px; display: flex; align-items: center; justify-content: center; }
         .logo-icon i { font-size: 24px; color: white; }
         .logo h1 { font-size: 26px; font-weight: 800; background: var(--gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .menu-btn { background: var(--gradient); border: none; padding: 8px 20px; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .menu-btn { background: var(--gradient); border: none; padding: 8px 20px; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; }
         .theme-selector { display: flex; gap: 8px; background: rgba(0,0,0,0.05); padding: 5px 12px; border-radius: 40px; }
         .theme-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid white; }
-        
         .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
-        .cover-img { width: 100%; height: 250px; object-fit: cover; border-radius: 32px; margin: 20px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .cover-img { width: 100%; height: 220px; object-fit: cover; border-radius: 32px; margin: 20px 0; }
         .hero { background: var(--gradient); border-radius: 32px; padding: 40px 30px; margin-bottom: 30px; color: white; text-align: center; }
-        .hero h1 { font-size: 42px; margin-bottom: 10px; }
-        .price-note { background: rgba(255,255,255,0.2); display: inline-block; padding: 5px 15px; border-radius: 30px; margin-top: 10px; }
+        .hero h1 { font-size: 36px; margin-bottom: 10px; }
         .cat-scroll { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; }
         .cat-item { background: white; padding: 10px 22px; border-radius: 60px; display: flex; align-items: center; gap: 8px; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .product-section { margin-bottom: 40px; background: rgba(255,255,255,0.5); border-radius: 28px; padding: 20px; }
+        .product-section h2 { margin-bottom: 20px; font-size: 24px; }
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
-        .product-card { background: white; border-radius: 24px; overflow: hidden; transition: 0.3s; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+        .product-card { background: white; border-radius: 24px; overflow: hidden; transition: 0.3s; box-shadow: 0 8px 20px rgba(0,0,0,0.08); cursor: pointer; }
         .product-card:hover { transform: translateY(-5px); }
-        .product-img { width: 100%; height: 190px; object-fit: cover; cursor: pointer; }
+        .product-img { width: 100%; height: 190px; object-fit: cover; }
         .product-body { padding: 16px; }
         .product-price-pkr { font-size: 22px; font-weight: 800; color: var(--primary); margin: 8px 0; }
         .old-price { font-size: 14px; text-decoration: line-through; color: #999; margin-left: 8px; }
@@ -51,7 +49,6 @@
         .tab-icon.active { opacity: 1; color: var(--primary); }
         .page { display: none; }
         .page.active-page { display: block; }
-        
         .sidebar { position: fixed; right: -400px; top: 70px; width: 380px; height: calc(100vh - 80px); background: rgba(255,255,255,0.98); border-radius: 28px 0 0 28px; box-shadow: -5px 5px 30px rgba(0,0,0,0.15); z-index: 200; transition: right 0.3s; display: flex; flex-direction: column; overflow: hidden; }
         .sidebar.open { right: 0; }
         .sidebar-header { background: var(--gradient); padding: 18px; color: white; display: flex; justify-content: space-between; }
@@ -64,7 +61,7 @@
         .client-msg { display: flex; justify-content: flex-end; }
         .client-msg .bubble { background: var(--gradient); color: white; border-radius: 20px 20px 5px 20px; }
         .admin-msg .bubble { background: #f0f0f0; border-radius: 20px 20px 20px 5px; }
-        .bubble { padding: 10px 14px; max-width: 85%; font-size: 13px; }
+        .bubble { padding: 10px 14px; max-width: 85%; font-size: 13px; word-break: break-word; }
         .delete-msg-chat { position: absolute; bottom: -8px; right: 5px; background: rgba(0,0,0,0.5); color: white; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 9px; cursor: pointer; opacity: 0; }
         .message-bubble:hover .delete-msg-chat { opacity: 1; }
         .chat-input-area { display: flex; gap: 10px; margin-top: 10px; }
@@ -100,8 +97,8 @@
 </header>
 
 <div class="container">
-    <img id="coverImage" class="cover-img" src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200" alt="Store Cover">
-    <div class="hero"><h1>Welcome to GM Store 🇵🇰</h1><p>Pakistan's Most Trusted Marketplace</p><div class="price-note"><i class="fas fa-rupee-sign"></i> All Prices in Pakistani Rupees | 1 USD = 280 PKR</div></div>
+    <img id="coverImage" class="cover-img" src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200" alt="Cover">
+    <div class="hero"><h1>Welcome to GM Store 🇵🇰</h1><p>Pakistan's Most Trusted Marketplace</p><div class="price-note" style="background:rgba(255,255,255,0.2); display:inline-block; padding:5px 15px; border-radius:30px; margin-top:10px;"><i class="fas fa-rupee-sign"></i> All Prices in Pakistani Rupees | 1 USD = 280 PKR</div></div>
     
     <div id="homePage" class="page active-page">
         <div class="cat-scroll" id="categoriesList"></div>
@@ -123,12 +120,11 @@
     <div class="sidebar-tabs"><div class="sidebar-tab active" onclick="switchSidebarTab('chat')">💬 Chat with Admin</div><div class="sidebar-tab" onclick="switchSidebarTab('request')">📦 Sell Product</div></div>
     <div class="sidebar-content">
         <div id="chatPanel"><div class="chat-messages" id="sidebarChatMessages"></div><div class="chat-input-area"><input type="text" id="chatInput" placeholder="Type message..."><button class="menu-btn" onclick="sendMessage()" style="padding:8px 16px">Send</button></div></div>
-        <div id="requestPanel" style="display:none"><h4>Request to Add Product</h4><div class="request-form"><input type="text" id="reqName" placeholder="Product Name *"><select id="reqCategory"></select><input type="number" id="reqPrice" placeholder="Price USD *"><input type="number" id="reqStock" placeholder="Stock *"><input type="text" id="reqWhatsapp" placeholder="Your WhatsApp *"><input type="text" id="reqSellerName" placeholder="Your Name *"><textarea id="reqDesc" rows="2" placeholder="Description *"></textarea><input type="file" id="reqImages" multiple accept="image/*"><div id="reqImgPreview" class="img-preview"></div><button class="menu-btn" onclick="submitProductRequest()" style="width:100%; margin-top:10px">Send Request</button></div></div>
+        <div id="requestPanel" style="display:none"><h4>Request to Add Product</h4><div class="request-form"><input type="text" id="reqName" placeholder="Product Name *"><select id="reqCategory"></select><input type="number" id="reqPrice" placeholder="Price USD *"><input type="number" id="reqStock" placeholder="Stock *"><input type="text" id="reqWhatsapp" placeholder="Your WhatsApp *"><input type="text" id="reqSellerName" placeholder="Your Name *"><textarea id="reqDesc" rows="2" placeholder="Description *"></textarea><input type="file" id="reqImages" multiple accept="image/*"><div id="reqImgPreview" class="img-preview" style="display:flex; gap:8px; flex-wrap:wrap; margin:8px 0;"></div><button class="menu-btn" onclick="submitProductRequest()" style="width:100%; margin-top:10px">Send Request</button></div></div>
     </div>
 </div>
 
-<!-- Product Modal -->
-<div id="productModal" class="modal"><div class="modal-content"><i class="fas fa-times" onclick="closeProductModal()" style="float:right; font-size:22px; cursor:pointer"></i><h2 id="modalTitle"></h2><div id="modalGallery" class="modal-gallery"></div><p><strong>Price:</strong> Rs. <span id="modalPrice"></span></p><p><strong>Seller:</strong> <span id="modalSeller"></span></p><p><strong>WhatsApp:</strong> <span id="modalWhatsapp"></span></p><button class="btn-buy" onclick="orderFromModal()" style="margin-top:15px"><i class="fab fa-whatsapp"></i> Order on WhatsApp</button></div></div>
+<div id="productModal" class="modal"><div class="modal-content"><i class="fas fa-times" onclick="closeProductModal()" style="float:right; font-size:22px; cursor:pointer"></i><h2 id="modalTitle"></h2><div id="modalGallery" class="modal-gallery"></div><p><strong>Price:</strong> Rs. <span id="modalPrice"></span></p><p><strong>Seller:</strong> <span id="modalSeller"></span></p><p><strong>WhatsApp:</strong> <span id="modalWhatsapp"></span></p><button onclick="orderFromModal()" class="btn-buy" style="margin-top:15px"><i class="fab fa-whatsapp"></i> Order on WhatsApp</button></div></div>
 
 <script>
     const USD_TO_PKR = 280;
@@ -169,27 +165,28 @@
     function productCard(p, type) {
         let pkrPrice = toPKR(p.price);
         let pkrFinal = toPKR(p.price - (p.price * (p.discount||0)/100));
-        return `<div class="product-card"><img src="${p.images[0]}" class="product-img" onclick='viewProduct(${JSON.stringify(p).replace(/'/g, "&#39;")}, "${type}")'><div class="product-body"><div class="product-price-pkr"><i class="fas fa-rupee-sign"></i> ${pkrFinal.toLocaleString()} ${p.discount ? `<span class="old-price"><i class="fas fa-rupee-sign"></i> ${pkrPrice.toLocaleString()}</span> <span style="font-size:12px;">${p.discount}% OFF</span>` : ''}</div><button class="btn-buy" onclick="buyWhatsApp('${escapeHtml(p.name)}', ${pkrFinal}, '${p.whatsapp}')"><i class="fab fa-whatsapp"></i> WhatsApp Order</button><button class="btn-order" onclick="openOrderForm('${escapeHtml(p.name)}', ${pkrFinal})"><i class="fas fa-truck"></i> Place Order</button></div></div>`;
+        return `<div class="product-card" onclick='viewProduct(${JSON.stringify(p).replace(/'/g, "&#39;")}, "${type}")'><img src="${p.images[0]}" class="product-img"><div class="product-body"><div class="product-price-pkr"><i class="fas fa-rupee-sign"></i> ${pkrFinal.toLocaleString()} ${p.discount ? `<span class="old-price"><i class="fas fa-rupee-sign"></i> ${pkrPrice.toLocaleString()}</span> <span style="font-size:12px;">${p.discount}% OFF</span>` : ''}</div><button class="btn-buy" onclick="event.stopPropagation(); buyWhatsApp('${escapeHtml(p.name)}', ${pkrFinal}, '${p.whatsapp}')"><i class="fab fa-whatsapp"></i> WhatsApp Order</button><button class="btn-order" onclick="event.stopPropagation(); openOrderForm('${escapeHtml(p.name)}', ${pkrFinal})"><i class="fas fa-truck"></i> Place Order</button></div></div>`;
     }
 
     function viewProduct(p, type) {
         currentViewProduct = p;
+        let pkrFinal = toPKR(p.price - (p.price * (p.discount||0)/100));
         document.getElementById('modalTitle').innerText = p.name;
-        document.getElementById('modalGallery').innerHTML = p.images.map(img => `<img src="${img}" class="gallery-img" onclick="window.open(this.src)">`).join('');
-        document.getElementById('modalPrice').innerText = toPKR(p.price - (p.price * (p.discount||0)/100)).toLocaleString();
+        document.getElementById('modalGallery').innerHTML = p.images.map(img => `<img src="${img}" class="gallery-img" onclick="event.stopPropagation(); window.open(this.src)">`).join('');
+        document.getElementById('modalPrice').innerText = pkrFinal.toLocaleString();
         document.getElementById('modalSeller').innerText = type === 'admin' ? 'GM Official Store' : p.sellerName;
         document.getElementById('modalWhatsapp').innerText = p.whatsapp;
         document.getElementById('productModal').style.display = 'flex';
     }
     function closeProductModal() { document.getElementById('productModal').style.display = 'none'; }
-    function orderFromModal() { if(currentViewProduct) buyWhatsApp(currentViewProduct.name, toPKR(currentViewProduct.price - (currentViewProduct.price * (currentViewProduct.discount||0)/100)), currentViewProduct.whatsapp); }
+    function orderFromModal() { if(currentViewProduct) { let price = toPKR(currentViewProduct.price - (currentViewProduct.price * (currentViewProduct.discount||0)/100)); buyWhatsApp(currentViewProduct.name, price, currentViewProduct.whatsapp); } }
 
-    function buyWhatsApp(name, price, whatsapp) { window.open(`https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}?text=Hi%2C%20I%20want%20to%20buy%20${encodeURIComponent(name)}%20for%20Rs.${price}`, '_blank'); }
-    function openOrderForm(name, price) { Swal.fire({ title: `Order ${name}`, html: `<input id="orderName" class="swal2-input" placeholder="Full Name"><input id="orderCity" placeholder="City"><input id="orderAddress" placeholder="Full Address"><select id="orderProvince"><option>Punjab</option><option>Sindh</option><option>KPK</option><option>Balochistan</option></select><input id="orderMobile" placeholder="Mobile Number">`, preConfirm: () => { return { name: document.getElementById('orderName').value, city: document.getElementById('orderCity').value, address: document.getElementById('orderAddress').value, province: document.getElementById('orderProvince').value, mobile: document.getElementById('orderMobile').value }; } }).then(res => { if(res.value) { fetch('https://formspree.io/f/xkoqnkze', { method: 'POST', body: new FormData(), headers: { 'Accept': 'application/json' } }); Swal.fire('Order Submitted!', 'Admin will contact you', 'success'); let order = { id: Date.now(), productName: name, price: price, status: 'Pending' }; orders.unshift(order); saveAll(); renderOrders(); } }); }
+    function buyWhatsApp(name, price, whatsapp) { let cleanNumber = whatsapp.toString().replace(/[^0-9]/g, ''); if(cleanNumber.startsWith('0')) cleanNumber = '92' + cleanNumber.substring(1); if(!cleanNumber.startsWith('92')) cleanNumber = '92' + cleanNumber; window.open(`https://wa.me/${cleanNumber}?text=Hi%2C%20I%20want%20to%20buy%20${encodeURIComponent(name)}%20for%20Rs.${price}`, '_blank'); }
+    function openOrderForm(name, price) { Swal.fire({ title: `Order ${name}`, html: `<input id="orderName" class="swal2-input" placeholder="Full Name" required><input id="orderCity" placeholder="City" required><input id="orderAddress" placeholder="Full Address" required><select id="orderProvince" class="swal2-select"><option>Punjab</option><option>Sindh</option><option>KPK</option><option>Balochistan</option><option>Gilgit Baltistan</option><option>Azad Kashmir</option></select><input id="orderMobile" placeholder="Mobile Number" required>`, preConfirm: () => { return { name: document.getElementById('orderName').value, city: document.getElementById('orderCity').value, address: document.getElementById('orderAddress').value, province: document.getElementById('orderProvince').value, mobile: document.getElementById('orderMobile').value }; } }).then(res => { if(res.value) { fetch('https://formspree.io/f/xkoqnkze', { method: 'POST', body: new URLSearchParams(res.value), headers: { 'Accept': 'application/json' } }); Swal.fire('Order Submitted!', 'Admin will contact you', 'success'); let order = { id: Date.now(), productName: name, price: price, status: 'Pending', date: new Date().toLocaleString() }; orders.unshift(order); saveAll(); renderOrders(); } }); }
 
-    // Chat
-    let clientName = localStorage.getItem('gm_client_name') || "Customer";
-    if(clientName === "Customer") { Swal.fire({ title: 'Welcome!', input: 'text', inputLabel: 'Enter your name', inputPlaceholder: 'Your name' }).then(res => { if(res.value) { clientName = res.value; localStorage.setItem('gm_client_name', clientName); } }); }
+    let clientName = localStorage.getItem('gm_client_name');
+    if(!clientName) { clientName = prompt("Enter your name for chat:", "Customer") || "Customer"; localStorage.setItem('gm_client_name', clientName); }
+    
     function sendMessage() {
         let msg = document.getElementById('chatInput').value.trim();
         if(!msg) return;
@@ -200,24 +197,22 @@
         renderChat();
         document.getElementById('chatInput').value = '';
     }
-    function deleteChatMessage(idx) {
-        let chats = clientChats[clientName] || [];
-        if(chats[idx]) { chats.splice(idx, 1); clientChats[clientName] = chats; saveAll(); renderChat(); }
-    }
+    function deleteChatMessage(idx) { let chats = clientChats[clientName] || []; if(chats[idx]) { chats.splice(idx, 1); clientChats[clientName] = chats; saveAll(); renderChat(); } }
     function renderChat() {
         let container = document.getElementById('sidebarChatMessages');
         let chats = clientChats[clientName] || [];
-        container.innerHTML = chats.slice(-50).map((m, idx) => `<div class="message-bubble ${m.sender === 'client' ? 'client-msg' : 'admin-msg'}"><div class="bubble"><strong>${m.sender === 'client' ? clientName : 'Admin'}:</strong> ${escapeHtml(m.message)}<br><small>${m.time}</small></div><span class="delete-msg-chat" onclick="deleteChatMessage(${idx})">🗑️</span></div>`).join('');
+        container.innerHTML = chats.slice(-50).map((m, idx) => `<div class="message-bubble ${m.sender === 'client' ? 'client-msg' : 'admin-msg'}"><div class="bubble"><strong>${m.sender === 'client' ? clientName : 'Admin'}:</strong> ${escapeHtml(m.message)}<br><small>${m.time}</small></div><span class="delete-msg-chat" onclick="deleteChatMessage(${idx})"><i class="fas fa-trash"></i></span></div>`).join('');
         container.scrollTop = container.scrollHeight;
     }
 
     let requestImages = [];
     document.getElementById('reqImages')?.addEventListener('change', function(e) {
         let files = Array.from(e.target.files);
+        if(files.length > 5) { Swal.fire('Error', 'Max 5 images', 'error'); this.value=''; return; }
         requestImages = [];
         let container = document.getElementById('reqImgPreview');
         container.innerHTML = '';
-        files.forEach(file => { let reader = new FileReader(); reader.onload = ev => { requestImages.push(ev.target.result); let img = document.createElement('img'); img.src = ev.target.result; img.style.width = '60px'; img.style.borderRadius = '12px'; container.appendChild(img); }; reader.readAsDataURL(file); });
+        files.forEach(file => { let reader = new FileReader(); reader.onload = ev => { requestImages.push(ev.target.result); let img = document.createElement('img'); img.src = ev.target.result; img.style.width = '60px'; img.style.height = '60px'; img.style.borderRadius = '12px'; img.style.objectFit = 'cover'; container.appendChild(img); }; reader.readAsDataURL(file); });
     });
 
     function submitProductRequest() {
@@ -229,21 +224,21 @@
         let sellerName = document.getElementById('reqSellerName').value.trim();
         let desc = document.getElementById('reqDesc').value.trim();
         if(!name || !category || !price || !stock || !whatsapp || !sellerName || !desc || requestImages.length === 0) { Swal.fire('Error', 'Fill all fields and upload image', 'error'); return; }
-        clientRequests.push({ id: Date.now(), product: { name, category, price, stock, description: desc, images: [...requestImages] }, seller: { name: sellerName, whatsapp }, status: 'pending' });
+        clientRequests.push({ id: Date.now(), product: { name, category, price, stock, description: desc, images: [...requestImages] }, seller: { name: sellerName, whatsapp }, status: 'pending', time: new Date().toLocaleString() });
         saveAll();
         Swal.fire('Request Sent!', 'Admin will review', 'success');
         document.getElementById('reqName').value = ''; document.getElementById('reqPrice').value = ''; document.getElementById('reqStock').value = ''; document.getElementById('reqWhatsapp').value = ''; document.getElementById('reqSellerName').value = ''; document.getElementById('reqDesc').value = ''; document.getElementById('reqImages').value = ''; document.getElementById('reqImgPreview').innerHTML = ''; requestImages = [];
         closeSidebar();
     }
 
-    function renderFav() { let container = document.getElementById('favoritesList'); if(favorites.length===0) container.innerHTML='<p>No favorites</p>'; else container.innerHTML = favorites.map(p => `<div style="background:white; border-radius:20px; padding:15px; margin-bottom:10px"><h4>${p.name}</h4><p>Rs. ${toPKR(p.price).toLocaleString()}</p></div>`).join(''); }
-    function renderOrders() { let container = document.getElementById('ordersList'); if(orders.length===0) container.innerHTML='<p>No orders</p>'; else container.innerHTML = orders.map(o => `<div style="background:white; border-radius:20px; padding:15px; margin-bottom:10px"><h4>${o.productName}</h4><p>Rs. ${o.price.toLocaleString()}</p><span style="background:#ffe0e0; padding:2px 12px; border-radius:20px">${o.status}</span></div>`).join(''); }
+    function renderFav() { let container = document.getElementById('favoritesList'); if(favorites.length===0) container.innerHTML='<p style="padding:40px;text-align:center">No favorites yet</p>'; else container.innerHTML = favorites.map(p => `<div style="background:white; border-radius:20px; padding:15px; margin-bottom:10px"><h4>${p.name}</h4><p>Rs. ${toPKR(p.price).toLocaleString()}</p></div>`).join(''); }
+    function renderOrders() { let container = document.getElementById('ordersList'); if(orders.length===0) container.innerHTML='<p style="padding:40px;text-align:center">No orders yet</p>'; else container.innerHTML = orders.map(o => `<div style="background:white; border-radius:20px; padding:15px; margin-bottom:10px"><h4>${o.productName}</h4><p>Rs. ${o.price.toLocaleString()}</p><span style="background:#e0e0e0; padding:2px 12px; border-radius:20px">${o.status}</span></div>`).join(''); }
 
-    function switchPage(page) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page')); document.getElementById(page + 'Page').classList.add('active-page'); document.querySelectorAll('.tab-icon').forEach((t,i) => t.classList.toggle('active', (page==='home' && i===0) || (page==='favorites' && i===1) || (page==='orders' && i===2))); if(page === 'favorites') renderFav(); if(page === 'orders') renderOrders(); if(page === 'home') renderStore(); }
+    function switchPage(page) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page')); document.getElementById(page + 'Page').classList.add('active-page'); document.querySelectorAll('.tab-icon').forEach((t,i) => { t.classList.toggle('active', (page==='home' && i===0) || (page==='favorites' && i===1) || (page==='orders' && i===2)); }); if(page === 'favorites') renderFav(); if(page === 'orders') renderOrders(); if(page === 'home') renderStore(); }
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('active'); renderChat(); }
     function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('active'); }
-    function switchSidebarTab(tab) { document.getElementById('chatPanel').style.display = tab === 'chat' ? 'block' : 'none'; document.getElementById('requestPanel').style.display = tab === 'request' ? 'block' : 'none'; document.querySelectorAll('.sidebar-tab').forEach((t,i) => t.classList.toggle('active', (tab === 'chat' && i===0) || (tab === 'request' && i===1))); }
-    function escapeHtml(str) { let d=document.createElement('div'); d.textContent=str; return d.innerHTML; }
+    function switchSidebarTab(tab) { document.getElementById('chatPanel').style.display = tab === 'chat' ? 'block' : 'none'; document.getElementById('requestPanel').style.display = tab === 'request' ? 'block' : 'none'; document.querySelectorAll('.sidebar-tab').forEach((t,i) => { t.classList.toggle('active', (tab === 'chat' && i===0) || (tab === 'request' && i===1)); }); }
+    function escapeHtml(str) { if(!str) return ''; let d=document.createElement('div'); d.textContent=str; return d.innerHTML; }
 
     setInterval(() => { adminProducts = JSON.parse(localStorage.getItem('gm_admin_products')) || []; clientRequests = JSON.parse(localStorage.getItem('gm_client_requests')) || []; categories = JSON.parse(localStorage.getItem('gm_categories')) || {}; renderStore(); renderCategories(); }, 3000);
     renderCategories(); renderStore(); renderFav(); renderOrders();
