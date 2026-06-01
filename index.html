@@ -42,9 +42,9 @@
         .product-body { padding: 16px; }
         .product-price-pkr { font-size: 22px; font-weight: 800; color: var(--primary); margin: 8px 0; }
         .old-price { font-size: 14px; text-decoration: line-through; color: #999; margin-left: 8px; }
-        .btn-buy, .btn-order { width: 100%; padding: 10px; border-radius: 40px; border: none; font-weight: 600; cursor: pointer; margin-top: 8px; }
-        .btn-buy { background: #25D366; color: white; }
-        .btn-order { background: var(--gradient); color: white; }
+        .btn-whatsapp, .btn-place-order { width: 100%; padding: 10px; border-radius: 40px; border: none; font-weight: 600; cursor: pointer; margin-top: 8px; }
+        .btn-whatsapp { background: #25D366; color: white; }
+        .btn-place-order { background: var(--gradient); color: white; }
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 12px; z-index: 99; }
         .tab-icon { text-align: center; cursor: pointer; opacity: 0.5; }
         .tab-icon.active { opacity: 1; color: var(--primary); }
@@ -62,7 +62,7 @@
         .client-msg { display: flex; justify-content: flex-end; }
         .client-msg .bubble { background: var(--gradient); color: white; border-radius: 20px 20px 5px 20px; }
         .admin-msg .bubble { background: #f0f0f0; border-radius: 20px 20px 20px 5px; }
-        .bubble { padding: 10px 14px; max-width: 85%; font-size: 13px; word-break: break-word; }
+        .bubble { padding: 10px 14px; max-width: 85%; font-size: 13px; }
         .delete-msg-chat { position: absolute; bottom: -8px; right: 5px; background: rgba(0,0,0,0.5); color: white; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 9px; cursor: pointer; opacity: 0; }
         .message-bubble:hover .delete-msg-chat { opacity: 1; }
         .chat-input-area { display: flex; gap: 10px; margin-top: 10px; }
@@ -129,7 +129,7 @@
     </div>
 </div>
 
-<div id="productModal" class="modal"><div class="modal-content"><i class="fas fa-times" onclick="closeProductModal()" style="float:right; font-size:22px; cursor:pointer"></i><h2 id="modalTitle"></h2><div id="modalGallery" class="modal-gallery"></div><p><strong>Price:</strong> Rs. <span id="modalPrice"></span></p><p><strong>Discount:</strong> <span id="modalDiscount"></span>%</p><p><strong>Final Price:</strong> Rs. <span id="modalFinalPrice"></span></p><p><strong>Seller:</strong> <span id="modalSeller"></span></p><button id="modalOrderBtn" class="btn-order" style="margin-top:15px; width:100%">Place Order</button><button onclick="downloadProductImages()" style="background:var(--gradient); border:none; padding:10px 20px; border-radius:40px; color:white; margin-top:10px; width:100%; cursor:pointer"><i class="fas fa-download"></i> Download All Images</button></div></div>
+<div id="productModal" class="modal"><div class="modal-content"><i class="fas fa-times" onclick="closeProductModal()" style="float:right; font-size:22px; cursor:pointer"></i><h2 id="modalTitle"></h2><div id="modalGallery" class="modal-gallery"></div><p><strong>Price:</strong> Rs. <span id="modalPrice"></span></p><p><strong>Discount:</strong> <span id="modalDiscount"></span>%</p><p><strong>Final Price:</strong> Rs. <span id="modalFinalPrice"></span></p><p><strong>Seller:</strong> <span id="modalSeller"></span></p><button id="modalOrderBtn" class="btn-place-order" style="margin-top:15px; width:100%">Order Now</button><button onclick="downloadProductImages()" style="background:var(--gradient); border:none; padding:10px 20px; border-radius:40px; color:white; margin-top:10px; width:100%; cursor:pointer"><i class="fas fa-download"></i> Download All Images</button></div></div>
 
 <script>
     let adminProducts = JSON.parse(localStorage.getItem('gm_admin_products')) || [];
@@ -143,8 +143,21 @@
 
     if (Object.keys(categories).length === 0) categories = { "Electronics": "https://cdn-icons-png.flaticon.com/512/3659/3659898.png", "Fashion": "https://cdn-icons-png.flaticon.com/512/6174/6174039.png", "Home Decor": "https://cdn-icons-png.flaticon.com/512/2543/2543366.png" };
 
-    function getApprovedCommunityProducts() { return clientRequests.filter(r => r.status === 'approved').map(r => ({ id: r.id, name: r.product.name, price: r.product.price, discount: 0, stock: r.product.stock, whatsapp: r.seller.whatsapp, category: r.product.category, images: r.product.images, description: r.product.description, addedBy: "client", sellerName: r.seller.name })); }
-    function saveAll() { localStorage.setItem('gm_client_requests', JSON.stringify(clientRequests)); localStorage.setItem('gm_client_chats', JSON.stringify(clientChats)); localStorage.setItem('gm_favorites', JSON.stringify(favorites)); localStorage.setItem('gm_orders', JSON.stringify(orders)); }
+    function getApprovedCommunityProducts() { 
+        return clientRequests.filter(r => r.status === 'approved').map(r => ({ 
+            id: r.id, name: r.product.name, price: r.product.price, discount: 0, stock: r.product.stock, 
+            whatsapp: r.seller.whatsapp,  // Client ka apna WhatsApp number
+            category: r.product.category, images: r.product.images, description: r.product.description, 
+            addedBy: "client", sellerName: r.seller.name 
+        })); 
+    }
+    
+    function saveAll() { 
+        localStorage.setItem('gm_client_requests', JSON.stringify(clientRequests)); 
+        localStorage.setItem('gm_client_chats', JSON.stringify(clientChats)); 
+        localStorage.setItem('gm_favorites', JSON.stringify(favorites)); 
+        localStorage.setItem('gm_orders', JSON.stringify(orders)); 
+    }
 
     function setTheme(theme) { document.body.className = theme === 'default' ? '' : 'theme-' + theme; localStorage.setItem('gm_client_theme', theme); }
     let savedTheme = localStorage.getItem('gm_client_theme'); if(savedTheme && savedTheme !== 'default') setTheme(savedTheme);
@@ -168,10 +181,15 @@
 
     function productCard(p, type) {
         let finalPrice = p.price - (p.price * (p.discount||0)/100);
-        // Admin products: WhatsApp Order button | Community products: Place Order button
-        let orderButton = type === 'admin' 
-            ? `<button class="btn-buy" onclick="event.stopPropagation(); buyWhatsApp('${escapeHtml(p.name)}', ${finalPrice}, '${p.whatsapp}')"><i class="fab fa-whatsapp"></i> WhatsApp Order</button>`
-            : `<button class="btn-order" onclick="event.stopPropagation(); openOrderForm('${escapeHtml(p.name)}', ${finalPrice})"><i class="fas fa-truck"></i> Place Order</button>`;
+        // Admin products: WhatsApp Order button (admin ka number)
+        // Community products (client ki approved products): Client ka WhatsApp number show, Place Order button nahi
+        let orderButton = '';
+        if(type === 'admin') {
+            orderButton = `<button class="btn-whatsapp" onclick="event.stopPropagation(); buyWhatsApp('${escapeHtml(p.name)}', ${finalPrice}, '${p.whatsapp}')"><i class="fab fa-whatsapp"></i> WhatsApp Order</button>`;
+        } else {
+            // Community product - show client ka WhatsApp number (sirf display, order button nahi)
+            orderButton = `<div style="margin-top:8px; padding:8px; background:#f0f0f0; border-radius:30px; text-align:center; font-size:12px;"><i class="fab fa-whatsapp"></i> Seller WhatsApp: ${p.whatsapp}</div>`;
+        }
         
         return `<div class="product-card" onclick='viewProduct(${JSON.stringify(p).replace(/'/g, "&#39;")}, "${type}")'><img src="${p.images[0]}" class="product-img"><div class="product-body"><div class="product-price-pkr"><i class="fas fa-rupee-sign"></i> ${finalPrice.toLocaleString()} ${p.discount ? `<span class="old-price"><i class="fas fa-rupee-sign"></i> ${p.price.toLocaleString()}</span> <span style="font-size:12px;">${p.discount}% OFF</span>` : ''}</div>${orderButton}</div></div>`;
     }
@@ -191,9 +209,12 @@
         if(type === 'admin') {
             orderBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Order on WhatsApp';
             orderBtn.onclick = () => buyWhatsApp(p.name, finalPrice, p.whatsapp);
+            orderBtn.style.display = 'block';
         } else {
-            orderBtn.innerHTML = '<i class="fas fa-truck"></i> Place Order';
-            orderBtn.onclick = () => openOrderForm(p.name, finalPrice);
+            // Community product mein modal mein bhi WhatsApp number show karega, Place Order nahi
+            orderBtn.innerHTML = `<i class="fab fa-whatsapp"></i> Contact Seller: ${p.whatsapp}`;
+            orderBtn.onclick = () => buyWhatsApp(p.name, finalPrice, p.whatsapp);
+            orderBtn.style.display = 'block';
         }
         document.getElementById('productModal').style.display = 'flex';
     }
@@ -201,28 +222,11 @@
     function closeProductModal() { document.getElementById('productModal').style.display = 'none'; }
     function downloadProductImages() { if(currentViewProduct) { currentViewProduct.images.forEach((img, i) => { let a = document.createElement('a'); a.href = img; a.download = `product_${currentViewProduct.id}_${i+1}.jpg`; a.click(); }); Swal.fire('Download started', 'Images are being downloaded', 'success'); } }
 
-    function buyWhatsApp(name, price, whatsapp) { let cleanNumber = whatsapp.toString().replace(/[^0-9]/g, ''); if(cleanNumber.startsWith('0')) cleanNumber = '92' + cleanNumber.substring(1); if(!cleanNumber.startsWith('92')) cleanNumber = '92' + cleanNumber; window.open(`https://wa.me/${cleanNumber}?text=Hi%2C%20I%20want%20to%20buy%20${encodeURIComponent(name)}%20for%20Rs.${price}`, '_blank'); }
-    
-    function openOrderForm(name, price) { 
-        Swal.fire({ 
-            title: `Order ${name}`, 
-            html: `<input id="orderName" class="swal2-input" placeholder="Full Name" required>
-                   <input id="orderCity" placeholder="City" required class="swal2-input">
-                   <input id="orderAddress" placeholder="Full Address" required class="swal2-input">
-                   <select id="orderProvince" class="swal2-select">
-                       <option>Punjab</option><option>Sindh</option><option>KPK</option>
-                       <option>Balochistan</option><option>Gilgit Baltistan</option><option>Azad Kashmir</option>
-                   </select>
-                   <input id="orderMobile" placeholder="Mobile Number" required class="swal2-input">`,
-            preConfirm: () => { return { name: document.getElementById('orderName').value, city: document.getElementById('orderCity').value, address: document.getElementById('orderAddress').value, province: document.getElementById('orderProvince').value, mobile: document.getElementById('orderMobile').value }; }
-        }).then(res => { 
-            if(res.value) { 
-                fetch('https://formspree.io/f/xkoqnkze', { method: 'POST', body: new URLSearchParams({...res.value, product: name, price: price}), headers: { 'Accept': 'application/json' } }); 
-                Swal.fire('Order Submitted!', 'Admin will contact you', 'success'); 
-                let order = { id: Date.now(), productName: name, price: price, status: 'Pending', date: new Date().toLocaleString() }; 
-                orders.unshift(order); saveAll(); renderOrders(); 
-            } 
-        }); 
+    function buyWhatsApp(name, price, whatsapp) { 
+        let cleanNumber = whatsapp.toString().replace(/[^0-9]/g, ''); 
+        if(cleanNumber.startsWith('0')) cleanNumber = '92' + cleanNumber.substring(1); 
+        if(!cleanNumber.startsWith('92')) cleanNumber = '92' + cleanNumber; 
+        window.open(`https://wa.me/${cleanNumber}?text=Hi%2C%20I%20want%20to%20buy%20${encodeURIComponent(name)}%20for%20Rs.${price}`, '_blank'); 
     }
 
     let clientName = localStorage.getItem('gm_client_name');
