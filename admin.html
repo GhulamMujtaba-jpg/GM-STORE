@@ -498,3 +498,26 @@
 </script>
 </body>
 </html>
+<h1>Admin Panel</h1>
+
+<button onclick="addProduct()">
+  Add Product
+</button>
+
+<script>
+async function addProduct() {
+  await fetch("/api/products", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      id: Date.now(),
+      name: "New Product",
+      price: 2000
+    })
+  });
+
+  alert("Product Added!");
+}
+</script>
