@@ -10,13 +10,13 @@ export default function Shop() {
   }, []);
 
   return (
-    <div className="container">
-      <h1>Shop</h1>
+    <div style={{ padding: 20 }}>
+      <h1>GM Store</h1>
 
       {products.map(p => (
-        <div key={p.id} className="card">
-          <h2>{p.name}</h2>
-          <p>Price: {p.price}</p>
+        <div key={p.id} style={{ border: "1px solid #ddd", margin: 10, padding: 10 }}>
+          <h3>{p.name}</h3>
+          <p>Rs {p.price}</p>
         </div>
       ))}
     </div>
