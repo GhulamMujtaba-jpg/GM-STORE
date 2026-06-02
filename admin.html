@@ -498,26 +498,42 @@
 </script>
 </body>
 </html>
-<h1>Admin Panel</h1>
+import { useState } from "react";
 
-<button onclick="addProduct()">
-  Add Product
-</button>
+export default function Admin() {
+  const [name, setName] = useState("");
+  const [price, setPrice] = useState("");
 
-<script>
-async function addProduct() {
-  await fetch("/api/products", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      id: Date.now(),
-      name: "New Product",
-      price: 2000
-    })
-  });
+  const addProduct = async () => {
+    await fetch("/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        price: Number(price)
+      })
+    });
 
-  alert("Product Added!");
+    alert("Product Added!");
+  };
+
+  return (
+    <div style={{ padding: 20 }}>
+      <h1>Admin Panel</h1>
+
+      <input
+        placeholder="Product Name"
+        onChange={(e) => setName(e.target.value)}
+      />
+
+      <input
+        placeholder="Price"
+        onChange={(e) => setPrice(e.target.value)}
+      />
+
+      <button onClick={addProduct}>
+        Add Product
+      </button>
+    </div>
+  );
 }
-</script>
