@@ -2,149 +2,167 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>GM Store Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GM Store Admin Panel</title>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-body{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);padding:20px}
+body{margin:0;font-family:Arial;background:#111;color:#fff}
+.container{padding:20px;max-width:1200px;margin:auto}
 
-/* ===== LOGIN ===== */
-.login-container{max-width:420px;margin:80px auto;background:#fff;padding:40px;border-radius:30px}
-.login-input{width:100%;padding:12px;margin:10px 0;border-radius:20px;border:1px solid #ddd}
-.login-btn{width:100%;padding:12px;background:#6c5ce7;color:#fff;border:none;border-radius:20px}
+/* LOGIN */
+.login{max-width:400px;margin:100px auto;background:#fff;color:#000;padding:30px;border-radius:20px}
+input,select,textarea{width:100%;padding:10px;margin:8px 0;border-radius:10px;border:1px solid #ccc}
 
-/* ===== DASHBOARD ===== */
-.admin-dashboard{display:none}
-.admin-dashboard.active{display:block}
+/* BUTTONS */
+button{padding:10px 15px;border:none;border-radius:10px;cursor:pointer}
+.primary{background:#6c5ce7;color:#fff}
+.danger{background:#e74c3c;color:#fff}
+.success{background:#2ecc71;color:#fff}
 
-.container{max-width:1200px;margin:auto}
+/* DASHBOARD */
+.dashboard{display:none}
+.header{display:flex;justify-content:space-between;align-items:center;background:#222;padding:15px;border-radius:10px;margin-bottom:20px}
 
-.header{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:20px;border-radius:20px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 
-.tabs button{padding:10px 20px;border:none;border-radius:20px;margin:5px;cursor:pointer}
-.tab-btn.active{background:#6c5ce7;color:#fff}
-
-.panel{display:none;background:#fff;padding:20px;border-radius:20px;margin-top:20px}
-.panel.active-panel{display:block}
-
-.form-input{width:100%;padding:10px;margin:5px 0;border-radius:10px;border:1px solid #ddd}
-
-.btn-submit{padding:10px 20px;background:#00b894;color:#fff;border:none;border-radius:20px}
-
-.product-card{background:#f8f8f8;padding:15px;border-radius:15px;margin:10px 0}
+.card{background:#222;padding:15px;border-radius:10px;margin-top:15px}
+img{max-width:80px;border-radius:10px}
 </style>
 </head>
 
 <body>
 
 <!-- LOGIN -->
-<div id="loginContainer" class="login-container">
+<div id="loginBox" class="login">
 <h2>Admin Login</h2>
-<input id="loginEmail" class="login-input" value="mujtabarehman30@gmail.com">
-<input id="loginPassword" type="password" class="login-input" placeholder="Password">
-<button class="login-btn" onclick="doLogin()">Login</button>
+<input id="email" placeholder="Email">
+<input id="pass" type="password" placeholder="Password">
+<button class="primary" onclick="login()">Login</button>
 </div>
 
 <!-- DASHBOARD -->
-<div id="adminDashboard" class="admin-dashboard">
-<div class="container">
+<div id="dash" class="dashboard container">
 
 <div class="header">
 <h2>GM Store Admin</h2>
-<button onclick="doLogout()">Logout</button>
+<button class="danger" onclick="logout()">Logout</button>
 </div>
 
-<div class="tabs">
-<button class="tab-btn active" onclick="switchTab('products')">Products</button>
+<!-- PRODUCT FORM -->
+<div class="card">
+<h3>Add Product</h3>
+
+<input id="name" placeholder="Product Name">
+<input id="price" placeholder="Price">
+<input id="discount" placeholder="Discount %">
+<input id="stock" placeholder="Stock">
+<input id="whatsapp" placeholder="WhatsApp Number">
+<textarea id="desc" placeholder="Description"></textarea>
+
+<select id="category"></select>
+
+<input type="file" id="img" multiple>
+
+<button class="success" onclick="addProduct()">Save Product</button>
 </div>
 
 <!-- PRODUCTS -->
-<div id="productsPanel" class="panel active-panel">
-
-<h3>Add Product</h3>
-
-<input id="productName" class="form-input" placeholder="Name">
-<input id="productPrice" class="form-input" placeholder="Price">
-
-<button class="btn-submit" onclick="saveProduct()">Save</button>
-
-<h3>All Products</h3>
-<div id="allProducts"></div>
-
+<div class="card">
+<h3>Products</h3>
+<div id="products"></div>
 </div>
 
-</div>
 </div>
 
 <script>
-const ADMIN_EMAIL = "mujtabarehman30@gmail.com";
-const ADMIN_PASSWORD = "Sahibzada@6060";
+const ADMIN_EMAIL="mujtabarehman30@gmail.com";
+const ADMIN_PASS="Sahibzada@6060";
 
-let products = JSON.parse(localStorage.getItem("products")) || [];
+let products=JSON.parse(localStorage.getItem("products"))||[];
+let categories=JSON.parse(localStorage.getItem("cats"))||{"Default":"General"};
+let chat=JSON.parse(localStorage.getItem("chat"))||{};
+let requests=JSON.parse(localStorage.getItem("req"))||[];
 
-function doLogin(){
-let email=document.getElementById("loginEmail").value;
-let pass=document.getElementById("loginPassword").value;
+function saveAll(){
+localStorage.setItem("products",JSON.stringify(products));
+localStorage.setItem("cats",JSON.stringify(categories));
+localStorage.setItem("chat",JSON.stringify(chat));
+localStorage.setItem("req",JSON.stringify(requests));
+render();
+}
 
-if(email===ADMIN_EMAIL && pass===ADMIN_PASSWORD){
-localStorage.setItem("login","true");
-document.getElementById("loginContainer").style.display="none";
-document.getElementById("adminDashboard").classList.add("active");
-loadProducts();
+function login(){
+let e=document.getElementById("email").value;
+let p=document.getElementById("pass").value;
+
+if(e===ADMIN_EMAIL && p===ADMIN_PASS){
+document.getElementById("loginBox").style.display="none";
+document.getElementById("dash").style.display="block";
+render();
 }else{
 Swal.fire("Error","Wrong login","error");
 }
 }
 
-function doLogout(){
-localStorage.removeItem("login");
-location.reload();
+function logout(){location.reload();}
+
+function addProduct(){
+let name=document.getElementById("name").value;
+let price=document.getElementById("price").value;
+let discount=document.getElementById("discount").value||0;
+let stock=document.getElementById("stock").value;
+let whatsapp=document.getElementById("whatsapp").value;
+let desc=document.getElementById("desc").value;
+let cat=document.getElementById("category").value;
+
+let files=document.getElementById("img").files;
+let images=[];
+
+for(let i=0;i<files.length;i++){
+let r=new FileReader();
+r.onload=function(e){
+images.push(e.target.result);
+
+if(images.length===files.length){
+products.push({
+id:Date.now(),
+name,price,discount,stock,whatsapp,desc,category:cat,images
+});
+saveAll();
+}
+}
+r.readAsDataURL(files[i]);
+}
 }
 
-function switchTab(){
-document.querySelectorAll(".panel")[0].classList.add("active-panel");
-}
-
-function saveProduct(){
-let name=document.getElementById("productName").value;
-let price=document.getElementById("productPrice").value;
-
-if(!name||!price){
-Swal.fire("Error","Fill all fields","error");
-return;
-}
-
-products.push({name,price});
-localStorage.setItem("products",JSON.stringify(products));
-
-document.getElementById("productName").value="";
-document.getElementById("productPrice").value="";
-
-loadProducts();
-}
-
-function loadProducts(){
+function render(){
 let html="";
-products.forEach((p,i)=>{
+products.forEach(p=>{
 html+=`
-<div class="product-card">
-<h4>${p.name}</h4>
-<p>Rs ${p.price}</p>
+<div class="card">
+<h3>${p.name}</h3>
+<p>Price: ${p.price}</p>
+<p>Discount: ${p.discount}%</p>
+<p>${p.desc}</p>
+<p>WhatsApp: ${p.whatsapp}</p>
+<div>${(p.images||[]).map(i=>`<img src="${i}">`).join("")}</div>
 </div>
 `;
 });
-document.getElementById("allProducts").innerHTML=html;
+document.getElementById("products").innerHTML=html;
+
+let c=document.getElementById("category");
+if(c){
+c.innerHTML=Object.keys(categories).map(k=>`<option>${k}</option>`).join("");
+}
 }
 
-if(localStorage.getItem("login")==="true"){
-document.getElementById("loginContainer").style.display="none";
-document.getElementById("adminDashboard").classList.add("active");
-loadProducts();
+if(localStorage.getItem("login")=="true"){
+document.getElementById("loginBox").style.display="none";
+document.getElementById("dash").style.display="block";
 }
 </script>
 
