@@ -220,39 +220,70 @@
 </div>
 </div>
 
+<!-- Firebase SDK -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, set, get, onValue, child } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    // === REPLACE THIS WITH YOUR OWN FIREBASE PROJECT CONFIG ===
+    // Get this from: https://console.firebase.google.com -> Project Settings -> General -> Your apps -> SDK setup and config
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+        projectId: "YOUR_PROJECT",
+        storageBucket: "YOUR_PROJECT.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    const fbApp = initializeApp(firebaseConfig);
+    const db = getDatabase(fbApp);
+
+    // Expose helpers globally so the rest of the script (non-module) can use them
+    window.fbDB = db;
+    window.fbRef = ref;
+    window.fbSet = set;
+    window.fbGet = get;
+    window.fbOnValue = onValue;
+    window.fbChild = child;
+    window.fbReady = true;
+    window.dispatchEvent(new Event('firebase-ready'));
+</script>
+
 <script>
     const ADMIN_USERNAME = "mujtabarehman30@gmail.com";
     const ADMIN_PASSWORD = "Sahibzada6060";
-    
+
     function doLogin() {
         let username = document.getElementById('loginEmail').value.trim();
         let password = document.getElementById('loginPassword').value.trim();
         if(username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-            localStorage.setItem('qazi_admin_logged_in', 'true');
+            sessionStorage.setItem('qazi_admin_logged_in', 'true');
             document.getElementById('loginContainer').style.display = 'none';
             document.getElementById('adminDashboard').classList.add('active');
-            loadAdminData();
+            startAdminData();
         } else {
             Swal.fire('Error', 'Invalid username or password!', 'error');
         }
     }
-    
+
     function doLogout() {
-        localStorage.removeItem('qazi_admin_logged_in');
+        sessionStorage.removeItem('qazi_admin_logged_in');
         document.getElementById('loginContainer').style.display = 'block';
         document.getElementById('adminDashboard').classList.remove('active');
         document.getElementById('loginEmail').value = ADMIN_USERNAME;
         document.getElementById('loginPassword').value = '';
     }
-    
+
     function checkLogin() {
-        if(localStorage.getItem('qazi_admin_logged_in') === 'true') {
+        if(sessionStorage.getItem('qazi_admin_logged_in') === 'true') {
             document.getElementById('loginContainer').style.display = 'none';
             document.getElementById('adminDashboard').classList.add('active');
-            loadAdminData();
+            startAdminData();
         }
     }
-    
+
     let adminProducts = [];
     let categories = {};
     let clientRequests = [];
@@ -261,42 +292,82 @@
     let editingProductId = null;
     let currentProductImages = [];
     let currentViewProduct = null;
+    let dataStarted = false;
 
-    function loadAdminData() {
-        adminProducts = JSON.parse(localStorage.getItem('qazi_admin_products')) || [];
-        categories = JSON.parse(localStorage.getItem('qazi_categories')) || {};
-        clientRequests = JSON.parse(localStorage.getItem('qazi_client_requests')) || [];
-        clientChats = JSON.parse(localStorage.getItem('qazi_client_chats')) || {};
-        nextProductId = JSON.parse(localStorage.getItem('qazi_next_product_id')) || 100;
-        
-        if (Object.keys(categories).length === 0) {
-            categories = { "Electronics": "https://cdn-icons-png.flaticon.com/512/3659/3659898.png", "Fashion": "https://cdn-icons-png.flaticon.com/512/6174/6174039.png", "Home Decor": "https://cdn-icons-png.flaticon.com/512/2543/2543366.png" };
-            saveAll();
-        }
-        if(adminProducts.length === 0) { 
-            adminProducts.push({ id: 1, name: "iPhone 15 Pro Max", price: 389000, discount: 10, finalPrice: 350100, stock: 12, whatsapp: "923001234567", category: "Electronics", images: ["https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400"], description: "Latest A17 chip, 256GB", addedBy: "admin", sellerName: "Qazi Official" }); 
-            saveAll();
-        }
-        renderCategories(); renderAllProducts(); renderPendingRequests(); renderClientsList(); updateStats();
+    // ---- Firebase realtime sync ----
+    function startAdminData() {
+        if (dataStarted) { renderEverything(); return; }
+        if (!window.fbReady) { window.addEventListener('firebase-ready', startAdminData, { once: true }); return; }
+        dataStarted = true;
+
+        const dbRoot = window.fbRef(window.fbDB, 'gmstore');
+
+        // Listen for products
+        window.fbOnValue(window.fbRef(window.fbDB, 'gmstore/adminProducts'), snap => {
+            adminProducts = snap.val() ? Object.values(snap.val()) : [];
+            renderAllProducts();
+            updateStats();
+        });
+
+        // Listen for categories
+        window.fbOnValue(window.fbRef(window.fbDB, 'gmstore/categories'), snap => {
+            categories = snap.val() || {};
+            if (Object.keys(categories).length === 0) {
+                categories = { "Electronics": "https://cdn-icons-png.flaticon.com/512/3659/3659898.png", "Fashion": "https://cdn-icons-png.flaticon.com/512/6174/6174039.png", "Home Decor": "https://cdn-icons-png.flaticon.com/512/2543/2543366.png" };
+                window.fbSet(window.fbRef(window.fbDB, 'gmstore/categories'), categories);
+            }
+            renderCategories();
+            updateStats();
+        });
+
+        // Listen for client requests
+        window.fbOnValue(window.fbRef(window.fbDB, 'gmstore/clientRequests'), snap => {
+            clientRequests = snap.val() ? Object.values(snap.val()) : [];
+            renderPendingRequests();
+            renderClientsList();
+            updateStats();
+        });
+
+        // Listen for chats
+        window.fbOnValue(window.fbRef(window.fbDB, 'gmstore/clientChats'), snap => {
+            clientChats = snap.val() || {};
+            renderClientsList();
+            if (currentSelectedClient) renderChatMessages(currentSelectedClient.id);
+        });
+
+        // Listen for next product id
+        window.fbOnValue(window.fbRef(window.fbDB, 'gmstore/nextProductId'), snap => {
+            nextProductId = snap.val() || 100;
+        });
+
+        // Seed default product if none exist (only once)
+        window.fbGet(window.fbRef(window.fbDB, 'gmstore/adminProducts')).then(snap => {
+            if (!snap.exists()) {
+                let seedProduct = { id: 1, name: "iPhone 15 Pro Max", price: 389000, discount: 10, finalPrice: 350100, stock: 12, whatsapp: "923001234567", category: "Electronics", images: ["https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400"], description: "Latest A17 chip, 256GB", addedBy: "admin", sellerName: "Qazi Official" };
+                window.fbSet(window.fbRef(window.fbDB, 'gmstore/adminProducts'), [seedProduct]);
+                window.fbSet(window.fbRef(window.fbDB, 'gmstore/nextProductId'), 100);
+            }
+        });
     }
 
-    function saveAll() {
-        localStorage.setItem('qazi_admin_products', JSON.stringify(adminProducts));
-        localStorage.setItem('qazi_categories', JSON.stringify(categories));
-        localStorage.setItem('qazi_client_requests', JSON.stringify(clientRequests));
-        localStorage.setItem('qazi_client_chats', JSON.stringify(clientChats));
-        localStorage.setItem('qazi_next_product_id', JSON.stringify(nextProductId));
-        updateStats();
-    }
+    function renderEverything() { renderCategories(); renderAllProducts(); renderPendingRequests(); renderClientsList(); updateStats(); }
+
+    function saveProducts() { window.fbSet(window.fbRef(window.fbDB, 'gmstore/adminProducts'), adminProducts); }
+    function saveCategories() { window.fbSet(window.fbRef(window.fbDB, 'gmstore/categories'), categories); }
+    function saveRequests() { window.fbSet(window.fbRef(window.fbDB, 'gmstore/clientRequests'), clientRequests); }
+    function saveChats() { window.fbSet(window.fbRef(window.fbDB, 'gmstore/clientChats'), clientChats); }
+    function saveNextId() { window.fbSet(window.fbRef(window.fbDB, 'gmstore/nextProductId'), nextProductId); }
 
     function setTheme(theme) { document.body.className = theme === 'default' ? '' : 'theme-' + theme; localStorage.setItem('qazi_admin_theme', theme); }
     let savedTheme = localStorage.getItem('qazi_admin_theme'); if(savedTheme && savedTheme !== 'default') setTheme(savedTheme);
-    
+
     document.getElementById('coverInput').addEventListener('change', function(e) {
         let file = e.target.files[0];
-        if(file) { let reader = new FileReader(); reader.onload = ev => { document.getElementById('coverImage').src = ev.target.result; localStorage.setItem('qazi_store_cover', ev.target.result); }; reader.readAsDataURL(file); }
+        if(file) { let reader = new FileReader(); reader.onload = ev => { document.getElementById('coverImage').src = ev.target.result; window.fbSet(window.fbRef(window.fbDB, 'gmstore/storeCover'), ev.target.result); }; reader.readAsDataURL(file); }
     });
-    let savedCover = localStorage.getItem('qazi_store_cover'); if(savedCover) document.getElementById('coverImage').src = savedCover;
+    window.addEventListener('firebase-ready', () => {
+        window.fbOnValue(window.fbRef(window.fbDB, 'gmstore/storeCover'), snap => { if (snap.val()) document.getElementById('coverImage').src = snap.val(); });
+    });
 
     let categoryImageData = null;
     document.getElementById('categoryImageUpload').addEventListener('change', function(e) {
@@ -312,14 +383,13 @@
         categoryImageData = null;
         document.getElementById('newCategoryName').value = '';
         document.getElementById('catImagePreview').innerHTML = '';
-        saveAll();
-        renderCategories();
+        saveCategories();
         Swal.fire({ icon: 'success', title: 'Category Added!', timer: 1500 });
     }
 
     function deleteCategory(catName) {
         Swal.fire({ title: 'Delete Category?', icon: 'warning', showCancelButton: true }).then(res => {
-            if(res.isConfirmed) { delete categories[catName]; saveAll(); renderCategories(); Swal.fire('Deleted!','','success'); }
+            if(res.isConfirmed) { delete categories[catName]; saveCategories(); Swal.fire('Deleted!','','success'); }
         });
     }
 
@@ -357,7 +427,7 @@
         if(!name || !category || !price || !stock || !whatsapp || !description) { Swal.fire('Error', 'Fill all fields', 'error'); return; }
         if(currentProductImages.length === 0 && !editingProductId) { Swal.fire('Error', 'Upload at least 1 image', 'error'); return; }
         let finalPrice = price - (price * discount / 100);
-        
+
         if(editingProductId) {
             let index = adminProducts.findIndex(p => p.id === editingProductId);
             if(index !== -1) {
@@ -368,12 +438,11 @@
         } else {
             let newProduct = { id: nextProductId++, name, price, discount, finalPrice, stock, whatsapp, category, images: [...currentProductImages], description, addedBy: "admin", sellerName: "Qazi Official" };
             adminProducts.push(newProduct);
+            saveNextId();
             Swal.fire({ icon: 'success', title: 'Product Added!', timer: 1500 });
         }
-        saveAll();
+        saveProducts();
         clearProductForm();
-        renderAllProducts();
-        renderCategorySelect();
     }
 
     function editProduct(id) {
@@ -410,7 +479,7 @@
 
     function deleteProduct(id) {
         Swal.fire({ title: 'Delete Product?', icon: 'warning', showCancelButton: true }).then(res => {
-            if(res.isConfirmed) { adminProducts = adminProducts.filter(p => p.id !== id); saveAll(); renderAllProducts(); Swal.fire('Deleted!','','success'); }
+            if(res.isConfirmed) { adminProducts = adminProducts.filter(p => p.id !== id); saveProducts(); Swal.fire('Deleted!','','success'); }
         });
     }
 
@@ -451,7 +520,7 @@
         if(pending.length === 0) { container.innerHTML = '<div style="padding:50px;text-align:center">No pending requests</div>'; return; }
         container.innerHTML = pending.map(req => `<div style="background:white; border-radius:28px; padding:22px; margin-bottom:20px;"><div style="display:flex; justify-content:space-between;"><strong>${escapeHtml(req.product.name)}</strong><span style="background:#fff3e0;padding:5px 16px;border-radius:30px;">Pending</span></div><div style="display:flex; gap:18px; margin:15px 0;"><img src="${req.product.images[0]}" width="70" height="70" style="border-radius:18px"><div><strong>Seller:</strong> ${escapeHtml(req.seller.name)}<br><strong>WhatsApp:</strong> ${req.seller.whatsapp}<br><strong>Price:</strong> Rs. ${req.product.price.toLocaleString()}</div></div><div style="display:flex; gap:14px;"><button onclick="handleRequest(${req.id}, 'accept')" style="background:#4caf50; color:white; padding:10px 24px; border-radius:50px; border:none">Accept</button><button onclick="handleRequest(${req.id}, 'reject')" style="background:#f44336; color:white; padding:10px 24px; border-radius:50px; border:none">Reject</button></div></div>`).join('');
     }
-    function handleRequest(id, action) { let req = clientRequests.find(r => r.id === id); if(req) { req.status = action === 'accept' ? 'approved' : 'rejected'; saveAll(); renderPendingRequests(); Swal.fire({ icon: 'success', title: action === 'accept' ? 'Approved!' : 'Rejected', timer: 1500 }); } }
+    function handleRequest(id, action) { let req = clientRequests.find(r => r.id === id); if(req) { req.status = action === 'accept' ? 'approved' : 'rejected'; saveRequests(); Swal.fire({ icon: 'success', title: action === 'accept' ? 'Approved!' : 'Rejected', timer: 1500 }); } }
 
     function getAllClients() {
         let clientsMap = new Map();
@@ -486,9 +555,9 @@
         container.scrollTop = container.scrollHeight;
     }
 
-    function deleteChatMessage(clientId, msgIndex) { if(clientChats[clientId] && clientChats[clientId][msgIndex]) { clientChats[clientId].splice(msgIndex, 1); saveAll(); renderChatMessages(clientId); } }
-    function sendAdminMessage() { if(!currentSelectedClient) { Swal.fire('Error', 'Select a client first', 'error'); return; } let msg = document.getElementById('adminChatInput')?.value.trim(); if(!msg) return; if(!clientChats[currentSelectedClient.id]) clientChats[currentSelectedClient.id] = []; clientChats[currentSelectedClient.id].push({ sender: 'admin', senderName: 'Admin', message: msg, time: new Date().toLocaleString() }); saveAll(); renderChatMessages(currentSelectedClient.id); document.getElementById('adminChatInput').value = ''; }
-    function sendBroadcast() { let msg = document.getElementById('broadcastMsg').value.trim(); if(!msg) { Swal.fire('Error', 'Enter message', 'error'); return; } getAllClients().forEach(client => { if(!clientChats[client.whatsapp]) clientChats[client.whatsapp] = []; clientChats[client.whatsapp].push({ sender: 'admin', senderName: 'Admin (Broadcast)', message: msg, time: new Date().toLocaleString() }); }); saveAll(); document.getElementById('broadcastMsg').value = ''; Swal.fire({ icon: 'success', title: 'Broadcast sent!', timer: 2000 }); }
+    function deleteChatMessage(clientId, msgIndex) { if(clientChats[clientId] && clientChats[clientId][msgIndex]) { clientChats[clientId].splice(msgIndex, 1); saveChats(); } }
+    function sendAdminMessage() { if(!currentSelectedClient) { Swal.fire('Error', 'Select a client first', 'error'); return; } let msg = document.getElementById('adminChatInput')?.value.trim(); if(!msg) return; if(!clientChats[currentSelectedClient.id]) clientChats[currentSelectedClient.id] = []; clientChats[currentSelectedClient.id].push({ sender: 'admin', senderName: 'Admin', message: msg, time: new Date().toLocaleString() }); saveChats(); document.getElementById('adminChatInput').value = ''; }
+    function sendBroadcast() { let msg = document.getElementById('broadcastMsg').value.trim(); if(!msg) { Swal.fire('Error', 'Enter message', 'error'); return; } getAllClients().forEach(client => { if(!clientChats[client.whatsapp]) clientChats[client.whatsapp] = []; clientChats[client.whatsapp].push({ sender: 'admin', senderName: 'Admin (Broadcast)', message: msg, time: new Date().toLocaleString() }); }); saveChats(); document.getElementById('broadcastMsg').value = ''; Swal.fire({ icon: 'success', title: 'Broadcast sent!', timer: 2000 }); }
 
     function updateStats() { document.getElementById('totalProducts').innerText = adminProducts.length; document.getElementById('pendingCount').innerText = clientRequests.filter(r => r.status === 'pending').length; document.getElementById('categoryCount').innerText = Object.keys(categories).length; document.getElementById('clientCount').innerText = getAllClients().length; }
     function switchTab(tab) { document.querySelectorAll('.panel').forEach(p => p.classList.remove('active-panel')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); if(tab === 'products') { document.getElementById('productsPanel').classList.add('active-panel'); document.querySelectorAll('.tab-btn')[0].classList.add('active'); renderAllProducts(); } else if(tab === 'categories') { document.getElementById('categoriesPanel').classList.add('active-panel'); document.querySelectorAll('.tab-btn')[1].classList.add('active'); renderCategories(); } else if(tab === 'requests') { document.getElementById('requestsPanel').classList.add('active-panel'); document.querySelectorAll('.tab-btn')[2].classList.add('active'); renderPendingRequests(); } else if(tab === 'chats') { document.getElementById('chatsPanel').classList.add('active-panel'); document.querySelectorAll('.tab-btn')[3].classList.add('active'); renderClientsList(); } }
