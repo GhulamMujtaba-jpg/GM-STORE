@@ -352,11 +352,35 @@
 
     function renderEverything() { renderCategories(); renderAllProducts(); renderPendingRequests(); renderClientsList(); updateStats(); }
 
-    function saveProducts() { window.fbSet(window.fbRef(window.fbDB, 'gmstore/adminProducts'), adminProducts); }
-    function saveCategories() { window.fbSet(window.fbRef(window.fbDB, 'gmstore/categories'), categories); }
-    function saveRequests() { window.fbSet(window.fbRef(window.fbDB, 'gmstore/clientRequests'), clientRequests); }
-    function saveChats() { window.fbSet(window.fbRef(window.fbDB, 'gmstore/clientChats'), clientChats); }
-    function saveNextId() { window.fbSet(window.fbRef(window.fbDB, 'gmstore/nextProductId'), nextProductId); }
+    function saveProducts() {
+        renderAllProducts(); updateStats(); // optimistic local update so UI never waits on the network
+        if (!window.fbReady) return;
+        window.fbSet(window.fbRef(window.fbDB, 'gmstore/adminProducts'), adminProducts)
+            .catch(err => Swal.fire('Sync Error', 'Could not save to server: ' + err.message, 'error'));
+    }
+    function saveCategories() {
+        renderCategories(); updateStats();
+        if (!window.fbReady) return;
+        window.fbSet(window.fbRef(window.fbDB, 'gmstore/categories'), categories)
+            .catch(err => Swal.fire('Sync Error', 'Could not save to server: ' + err.message, 'error'));
+    }
+    function saveRequests() {
+        renderPendingRequests(); renderClientsList(); updateStats();
+        if (!window.fbReady) return;
+        window.fbSet(window.fbRef(window.fbDB, 'gmstore/clientRequests'), clientRequests)
+            .catch(err => Swal.fire('Sync Error', 'Could not save to server: ' + err.message, 'error'));
+    }
+    function saveChats() {
+        renderClientsList(); if (currentSelectedClient) renderChatMessages(currentSelectedClient.id);
+        if (!window.fbReady) return;
+        window.fbSet(window.fbRef(window.fbDB, 'gmstore/clientChats'), clientChats)
+            .catch(err => Swal.fire('Sync Error', 'Could not save to server: ' + err.message, 'error'));
+    }
+    function saveNextId() {
+        if (!window.fbReady) return;
+        window.fbSet(window.fbRef(window.fbDB, 'gmstore/nextProductId'), nextProductId)
+            .catch(err => console.error(err));
+    }
 
     function setTheme(theme) { document.body.className = theme === 'default' ? '' : 'theme-' + theme; localStorage.setItem('qazi_admin_theme', theme); }
     let savedTheme = localStorage.getItem('qazi_admin_theme'); if(savedTheme && savedTheme !== 'default') setTheme(savedTheme);
@@ -419,12 +443,20 @@
     function saveProduct() {
         let name = document.getElementById('productName').value.trim();
         let category = document.getElementById('productCategory').value;
-        let price = parseFloat(document.getElementById('productPrice').value);
+        let priceRaw = document.getElementById('productPrice').value.trim();
+        let price = parseFloat(priceRaw);
         let discount = parseInt(document.getElementById('productDiscount').value) || 0;
-        let stock = parseInt(document.getElementById('productStock').value);
+        let stockRaw = document.getElementById('productStock').value.trim();
+        let stock = parseInt(stockRaw);
         let whatsapp = document.getElementById('productWhatsapp').value.trim();
         let description = document.getElementById('productDesc').value.trim();
-        if(!name || !category || !price || !stock || !whatsapp || !description) { Swal.fire('Error', 'Fill all fields', 'error'); return; }
+
+        if(!name) { Swal.fire('Error', 'Product Name is required', 'error'); return; }
+        if(!category) { Swal.fire('Error', 'Please select a Category', 'error'); return; }
+        if(priceRaw === '' || isNaN(price) || price <= 0) { Swal.fire('Error', 'Enter a valid Price', 'error'); return; }
+        if(stockRaw === '' || isNaN(stock) || stock < 0) { Swal.fire('Error', 'Enter a valid Stock', 'error'); return; }
+        if(!whatsapp) { Swal.fire('Error', 'WhatsApp Number is required', 'error'); return; }
+        if(!description) { Swal.fire('Error', 'Description is required', 'error'); return; }
         if(currentProductImages.length === 0 && !editingProductId) { Swal.fire('Error', 'Upload at least 1 image', 'error'); return; }
         let finalPrice = price - (price * discount / 100);
 
