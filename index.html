@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+
     <!-- Vercel Web Analytics -->
     <script>
       window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -77,7 +77,7 @@
         .request-form input, .request-form textarea, .request-form select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 16px; border: 1px solid #ddd; }
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 150; display: none; }
         .overlay.active { display: block; }
-        
+
         /* Product Modal Styles */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-content { background: white; border-radius: 32px; max-width: 650px; width: 90%; max-height: 85vh; overflow-y: auto; padding: 25px; animation: modalFadeIn 0.3s ease; }
@@ -91,7 +91,7 @@
         .download-btn:hover { transform: scale(1.02); opacity: 0.95; }
         .close-modal { float: right; font-size: 28px; cursor: pointer; color: #999; transition: 0.2s; }
         .close-modal:hover { color: var(--primary); }
-        
+
         .order-form-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1001; justify-content: center; align-items: center; }
         .order-form-content { background: white; border-radius: 32px; max-width: 500px; width: 90%; max-height: 85vh; overflow-y: auto; padding: 25px; }
         .order-form-content input, .order-form-content select, .order-form-content textarea { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 16px; border: 1px solid #ddd; }
@@ -125,7 +125,7 @@
         <p>Pakistan's Most Trusted Marketplace</p>
         <div class="price-note"><i class="fas fa-rupee-sign"></i> All Prices in Pakistani Rupees (PKR)</div>
     </div>
-    
+
     <div id="homePage" class="page active-page">
         <div class="cat-scroll" id="categoriesList"></div>
         <div class="product-section"><h2>👑 Official Store</h2><div class="product-grid" id="adminProductsGrid"></div></div>
@@ -194,36 +194,91 @@
     </div>
 </div>
 
+<!-- Firebase SDK -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, set, get, onValue, child } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    // === REPLACE THIS WITH YOUR OWN FIREBASE PROJECT CONFIG (same project as admin.html) ===
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+        projectId: "YOUR_PROJECT",
+        storageBucket: "YOUR_PROJECT.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    const fbApp = initializeApp(firebaseConfig);
+    const db = getDatabase(fbApp);
+
+    window.fbDB = db;
+    window.fbRef = ref;
+    window.fbSet = set;
+    window.fbGet = get;
+    window.fbOnValue = onValue;
+    window.fbChild = child;
+    window.fbReady = true;
+    window.dispatchEvent(new Event('firebase-ready'));
+</script>
+
 <script>
-    let adminProducts = JSON.parse(localStorage.getItem('gm_admin_products')) || [];
-    let categories = JSON.parse(localStorage.getItem('gm_categories')) || {};
-    let clientRequests = JSON.parse(localStorage.getItem('gm_client_requests')) || [];
-    let clientChats = JSON.parse(localStorage.getItem('gm_client_chats')) || {};
+    let adminProducts = [];
+    let categories = {};
+    let clientRequests = [];
+    let clientChats = {};
     let favorites = JSON.parse(localStorage.getItem('gm_favorites')) || [];
     let orders = JSON.parse(localStorage.getItem('gm_orders')) || [];
     let currentViewProduct = null;
     let currentViewProductType = null;
 
-    if (Object.keys(categories).length === 0) categories = { "Electronics": "https://cdn-icons-png.flaticon.com/512/3659/3659898.png", "Fashion": "https://cdn-icons-png.flaticon.com/512/6174/6174039.png", "Home Decor": "https://cdn-icons-png.flaticon.com/512/2543/2543366.png" };
+    // ---- Firebase realtime sync (shared data with admin) ----
+    function startClientData() {
+        if (!window.fbReady) { window.addEventListener('firebase-ready', startClientData, { once: true }); return; }
 
-    function getApprovedCommunityProducts() { 
-        return clientRequests.filter(r => r.status === 'approved').map(r => ({ 
-            id: r.id, name: r.product.name, price: r.product.price, discount: 0, stock: r.product.stock, 
-            whatsapp: r.seller.whatsapp, category: r.product.category, images: r.product.images, 
-            description: r.product.description, addedBy: "client", sellerName: r.seller.name 
-        })); 
+        window.fbOnValue(window.fbRef(window.fbDB, 'gmstore/adminProducts'), snap => {
+            adminProducts = snap.val() ? Object.values(snap.val()) : [];
+            renderStore();
+        });
+
+        window.fbOnValue(window.fbRef(window.fbDB, 'gmstore/categories'), snap => {
+            categories = snap.val() && Object.keys(snap.val()).length ? snap.val() : { "Electronics": "https://cdn-icons-png.flaticon.com/512/3659/3659898.png", "Fashion": "https://cdn-icons-png.flaticon.com/512/6174/6174039.png", "Home Decor": "https://cdn-icons-png.flaticon.com/512/2543/2543366.png" };
+            renderCategories();
+        });
+
+        window.fbOnValue(window.fbRef(window.fbDB, 'gmstore/clientRequests'), snap => {
+            clientRequests = snap.val() ? Object.values(snap.val()) : [];
+            renderStore();
+        });
+
+        window.fbOnValue(window.fbRef(window.fbDB, 'gmstore/clientChats'), snap => {
+            clientChats = snap.val() || {};
+            renderChat();
+        });
+
+        window.fbOnValue(window.fbRef(window.fbDB, 'gmstore/storeCover'), snap => {
+            if (snap.val()) document.getElementById('coverImage').src = snap.val();
+        });
     }
-    
-    function saveAll() { 
-        localStorage.setItem('gm_client_requests', JSON.stringify(clientRequests)); 
-        localStorage.setItem('gm_client_chats', JSON.stringify(clientChats)); 
-        localStorage.setItem('gm_favorites', JSON.stringify(favorites)); 
-        localStorage.setItem('gm_orders', JSON.stringify(orders)); 
+
+    function saveRequests() { window.fbSet(window.fbRef(window.fbDB, 'gmstore/clientRequests'), clientRequests); }
+    function saveChats() { window.fbSet(window.fbRef(window.fbDB, 'gmstore/clientChats'), clientChats); }
+    function saveLocal() {
+        localStorage.setItem('gm_favorites', JSON.stringify(favorites));
+        localStorage.setItem('gm_orders', JSON.stringify(orders));
+    }
+
+    function getApprovedCommunityProducts() {
+        return clientRequests.filter(r => r.status === 'approved').map(r => ({
+            id: r.id, name: r.product.name, price: r.product.price, discount: 0, stock: r.product.stock,
+            whatsapp: r.seller.whatsapp, category: r.product.category, images: r.product.images,
+            description: r.product.description, addedBy: "client", sellerName: r.seller.name
+        }));
     }
 
     function setTheme(theme) { document.body.className = theme === 'default' ? '' : 'theme-' + theme; localStorage.setItem('gm_client_theme', theme); }
     let savedTheme = localStorage.getItem('gm_client_theme'); if(savedTheme && savedTheme !== 'default') setTheme(savedTheme);
-    let cover = localStorage.getItem('gm_store_cover'); if(cover) document.getElementById('coverImage').src = cover;
 
     function renderCategories() {
         let container = document.getElementById('categoriesList');
@@ -270,7 +325,7 @@
         document.getElementById('modalDiscount').innerText = p.discount || 0;
         document.getElementById('modalFinalPrice').innerText = finalPrice.toLocaleString();
         document.getElementById('modalSeller').innerText = type === 'admin' ? 'GM Official Store' : p.sellerName;
-        
+
         let orderBtn = document.getElementById('modalOrderBtn');
         if(type === 'admin') {
             orderBtn.innerHTML = '<i class="fas fa-truck"></i> Place Order';
@@ -283,10 +338,10 @@
         }
         document.getElementById('productModal').style.display = 'flex';
     }
-    
+
     function closeProductModal() { document.getElementById('productModal').style.display = 'none'; }
-    
-    function downloadProductImages() { 
+
+    function downloadProductImages() {
         if(currentViewProduct && currentViewProduct.images.length > 0) {
             Swal.fire({
                 title: 'Download Images',
@@ -296,12 +351,12 @@
                 confirmButtonText: 'Download All'
             }).then(res => {
                 if(res.isConfirmed) {
-                    currentViewProduct.images.forEach((img, i) => { 
-                        let a = document.createElement('a'); 
-                        a.href = img; 
-                        a.download = `${currentViewProduct.name.replace(/[^a-z0-9]/gi, '_')}_${i+1}.jpg`; 
-                        a.click(); 
-                    }); 
+                    currentViewProduct.images.forEach((img, i) => {
+                        let a = document.createElement('a');
+                        a.href = img;
+                        a.download = `${currentViewProduct.name.replace(/[^a-z0-9]/gi, '_')}_${i+1}.jpg`;
+                        a.click();
+                    });
                     Swal.fire('Download Started!', 'Your images are being downloaded.', 'success');
                 }
             });
@@ -310,23 +365,23 @@
         }
     }
 
-    function buyWhatsApp(name, price, whatsapp) { 
-        let cleanNumber = whatsapp.toString().replace(/[^0-9]/g, ''); 
-        if(cleanNumber.startsWith('0')) cleanNumber = '92' + cleanNumber.substring(1); 
-        if(!cleanNumber.startsWith('92')) cleanNumber = '92' + cleanNumber; 
-        window.open(`https://wa.me/${cleanNumber}?text=Hi%2C%20I%20want%20to%20buy%20${encodeURIComponent(name)}%20for%20Rs.${price}`, '_blank'); 
+    function buyWhatsApp(name, price, whatsapp) {
+        let cleanNumber = whatsapp.toString().replace(/[^0-9]/g, '');
+        if(cleanNumber.startsWith('0')) cleanNumber = '92' + cleanNumber.substring(1);
+        if(!cleanNumber.startsWith('92')) cleanNumber = '92' + cleanNumber;
+        window.open(`https://wa.me/${cleanNumber}?text=Hi%2C%20I%20want%20to%20buy%20${encodeURIComponent(name)}%20for%20Rs.${price}`, '_blank');
     }
 
     // Order Form Functions
     let currentOrderProduct = { name: '', price: 0 };
-    
+
     function openOrderFormModal(name, price) {
         currentOrderProduct = { name, price };
         document.getElementById('orderProductInfo').innerHTML = `<strong>${name}</strong><br>Total Amount: <strong>Rs. ${price.toLocaleString()}</strong>`;
         document.getElementById('orderFormModal').style.display = 'flex';
         closeProductModal();
     }
-    
+
     function closeOrderFormModal() {
         document.getElementById('orderFormModal').style.display = 'none';
         document.getElementById('orderCustomerName').value = '';
@@ -337,7 +392,7 @@
         document.getElementById('orderAltMobile').value = '';
         document.getElementById('orderProvince').value = '';
     }
-    
+
     function submitOrderToFormspree() {
         let name = document.getElementById('orderCustomerName').value.trim();
         let city = document.getElementById('orderCity').value.trim();
@@ -346,12 +401,12 @@
         let mobile = document.getElementById('orderMobile').value.trim();
         let altMobile = document.getElementById('orderAltMobile').value.trim();
         let province = document.getElementById('orderProvince').value;
-        
+
         if(!name || !city || !address || !landmark || !mobile || !province) {
             Swal.fire('Error', 'Please fill all required fields', 'error');
             return;
         }
-        
+
         let formData = new FormData();
         formData.append('product', currentOrderProduct.name);
         formData.append('price', currentOrderProduct.price);
@@ -362,7 +417,7 @@
         formData.append('mobile', mobile);
         formData.append('alt_mobile', altMobile);
         formData.append('province', province);
-        
+
         fetch('https://formspree.io/f/xkoqnkze', {
             method: 'POST',
             body: formData,
@@ -372,7 +427,7 @@
                 Swal.fire({ icon: 'success', title: 'Order Submitted!', text: 'Admin will contact you soon.', timer: 3000 });
                 let order = { id: Date.now(), productName: currentOrderProduct.name, price: currentOrderProduct.price, status: 'Pending', date: new Date().toLocaleString() };
                 orders.unshift(order);
-                saveAll();
+                saveLocal();
                 renderOrders();
                 closeOrderFormModal();
             } else {
@@ -383,20 +438,20 @@
 
     let clientName = localStorage.getItem('gm_client_name');
     if(!clientName) { clientName = prompt("Enter your name for chat:", "Customer") || "Customer"; localStorage.setItem('gm_client_name', clientName); }
-    
+
     function sendMessage() {
         let msg = document.getElementById('chatInput').value.trim();
         if(!msg) return;
         let chats = clientChats[clientName] || [];
         chats.push({ sender: 'client', senderName: clientName, message: msg, time: new Date().toLocaleString() });
         clientChats[clientName] = chats;
-        saveAll();
-        renderChat();
+        saveChats();
         document.getElementById('chatInput').value = '';
     }
-    function deleteChatMessage(idx) { let chats = clientChats[clientName] || []; if(chats[idx]) { chats.splice(idx, 1); clientChats[clientName] = chats; saveAll(); renderChat(); } }
+    function deleteChatMessage(idx) { let chats = clientChats[clientName] || []; if(chats[idx]) { chats.splice(idx, 1); clientChats[clientName] = chats; saveChats(); } }
     function renderChat() {
         let container = document.getElementById('sidebarChatMessages');
+        if(!container) return;
         let chats = clientChats[clientName] || [];
         container.innerHTML = chats.slice(-50).map((m, idx) => `<div class="message-bubble ${m.sender === 'client' ? 'client-msg' : 'admin-msg'}"><div class="bubble"><strong>${m.sender === 'client' ? clientName : 'Admin'}:</strong> ${escapeHtml(m.message)}<br><small>${m.time}</small></div><span class="delete-msg-chat" onclick="deleteChatMessage(${idx})"><i class="fas fa-trash"></i></span></div>`).join('');
         container.scrollTop = container.scrollHeight;
@@ -422,7 +477,7 @@
         let desc = document.getElementById('reqDesc').value.trim();
         if(!name || !category || !price || !stock || !whatsapp || !sellerName || !desc || requestImages.length === 0) { Swal.fire('Error', 'Fill all fields and upload image', 'error'); return; }
         clientRequests.push({ id: Date.now(), product: { name, category, price, stock, description: desc, images: [...requestImages] }, seller: { name: sellerName, whatsapp }, status: 'pending', time: new Date().toLocaleString() });
-        saveAll();
+        saveRequests();
         Swal.fire('Request Sent!', 'Admin will review', 'success');
         document.getElementById('reqName').value = ''; document.getElementById('reqPrice').value = ''; document.getElementById('reqStock').value = ''; document.getElementById('reqWhatsapp').value = ''; document.getElementById('reqSellerName').value = ''; document.getElementById('reqDesc').value = ''; document.getElementById('reqImages').value = ''; document.getElementById('reqImgPreview').innerHTML = ''; requestImages = [];
         closeSidebar();
@@ -437,8 +492,8 @@
     function switchSidebarTab(tab) { document.getElementById('chatPanel').style.display = tab === 'chat' ? 'block' : 'none'; document.getElementById('requestPanel').style.display = tab === 'request' ? 'block' : 'none'; document.querySelectorAll('.sidebar-tab').forEach((t,i) => { t.classList.toggle('active', (tab === 'chat' && i===0) || (tab === 'request' && i===1)); }); }
     function escapeHtml(str) { if(!str) return ''; let d=document.createElement('div'); d.textContent=str; return d.innerHTML; }
 
-    setInterval(() => { adminProducts = JSON.parse(localStorage.getItem('gm_admin_products')) || []; clientRequests = JSON.parse(localStorage.getItem('gm_client_requests')) || []; categories = JSON.parse(localStorage.getItem('gm_categories')) || {}; renderStore(); renderCategories(); }, 3000);
-    renderCategories(); renderStore(); renderFav(); renderOrders();
+    renderCategories(); renderFav(); renderOrders();
+    startClientData();
 </script>
 </body>
 </html>
